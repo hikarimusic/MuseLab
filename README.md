@@ -296,6 +296,6 @@ song["C1"]["String"].write(20, [.25, .75, .25, .75, 2.0], [(F5, F6), (E5, E6), (
 song["C1"]["String"].write(24, [1.5, 0.5, 2.0, 1.0, 1.0, 2.0], [(D4, D5), (F4, F5), (E4, E5), (A4, A5), (B4, B5), (C5, C6)])
 song["C1"]["String"].write(32, [2.0, 1.0, 1.0, .25, .75, 1.0, 1.0], [(F5, F6), (E5, E6), (C5, C6), (A4, A5), (D5, D6), (B4, B5), (C5, C6)])
 
-song["C1"].view()
-
+song.save("lemon.mid")
+song.view()
 ```
