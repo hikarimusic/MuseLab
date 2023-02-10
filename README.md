@@ -11,6 +11,30 @@ Compose Music by Coding: generating MIDI from Python script
 from muselab import *
 
 song = Song()
+song.add("Part 1", length=16, key=F4, signature=(3, 4), tempo=120)
+song["Part 1"].add("Piano", Acoustic_Grand_Piano)
+song["Part 1"]["Piano"].write(2.0,
+    [.75, .25, 1.0, 1.0, 1.0, 2.0, .75, .25, 1.0, 1.0, 1.0, 2.0],
+    [ G3,  G3,  A3,  G3,  C4,  B3,  G3,  G3,  A3,  G3,  D4,  C4],
+    ['祝','你','生','日','快','樂','祝','你','生','日','快','樂']
+)
+song.save("mysong.mid")
+song.view()
+```
+* Run the file by ``python3 mysong.py``. Then you can view the music score, and the MIDI file will be saved as ``mysong.mid``:
+
+![image](https://github.com/hikarimusic/MuseLab/raw/main/doc/asset/mysong.png)
+
+## More About
+
+* The detailed documentation is coming soon!
+
+* The following is a more advanced example, which composes and arranges the first part of **Lemon (米津玄師)**. You can learn most things of MuseLab by examining the following example:
+
+```py
+from muselab import *
+
+song = Song()
 song.add("A1", 36, key=B3, signature=(4,4), tempo=87)
 song.add("A2", 36)
 song.add("B1", 16)
