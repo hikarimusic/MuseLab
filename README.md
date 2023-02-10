@@ -3,7 +3,7 @@ Compose Music by Coding: generating MIDI from Python script
 
 ## Quick Start
 
-* Install MuseLab following [setup.md](https://github.com/hikarimusic/MuseLab/setup.md)
+* Install MuseLab following [setup.md](https://github.com/hikarimusic/MuseLab/blob/main/setup.md)
 
 * Create a file ``mysong.py`` and paste the following code:
 
