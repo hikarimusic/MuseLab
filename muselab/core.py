@@ -11,7 +11,6 @@ class BaseMidi(dict):
     def save(self, name):
         self.render()
         self.mid.save(name)
-        #print(self.mid)
 
     def play(self):
         import pygame
@@ -28,8 +27,10 @@ class BaseMidi(dict):
         while pygame.mixer.music.get_busy():
             clock.tick(30)
     
-    def view(self):
+    def view(self, terminal=False):
         self.save('temp.mid')
+        if terminal == True:
+            print(self.mid)
         os.system("musescore3 temp.mid")
 
 
