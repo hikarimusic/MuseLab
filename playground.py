@@ -1,0 +1,3 @@
+from muselab import *
+
+piano()

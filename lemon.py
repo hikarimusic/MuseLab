@@ -1,38 +1,3 @@
-# MuseLab
-Compose Music by Coding: generating MIDI from Python script
-
-## Quick Start
-
-* Install MuseLab following [setup.md](https://github.com/hikarimusic/MuseLab/blob/main/setup.md)
-
-* Create a file ``mysong.py`` and paste the following code:
-
-```py
-from muselab import *
-
-song = Song()
-song.add("Part 1", length=16, key=F4, signature=(3, 4), tempo=120)
-song["Part 1"].add("Piano", Acoustic_Grand_Piano)
-song["Part 1"]["Piano"].write(2.0,
-    [.75, .25, 1.0, 1.0, 1.0, 2.0, .75, .25, 1.0, 1.0, 1.0, 2.0],
-    [ G3,  G3,  A3,  G3,  C4,  B3,  G3,  G3,  A3,  G3,  D4,  C4],
-    ['祝','你','生','日','快','樂','祝','你','生','日','快','樂']
-)
-song.save("mysong.mid")
-song.play()
-# song.view()
-```
-* Run the file by ``python3 mysong.py``. Then you can play the song (or view the score), and the MIDI file will be saved as ``mysong.mid``:
-
-![image](https://github.com/hikarimusic/MuseLab/raw/main/doc/asset/mysong.png)
-
-## More About
-
-* The detailed documentation is coming soon!
-
-* The following is a more advanced example, which composes and arranges the first part of **Lemon (米津玄師)**. You can learn most things of MuseLab by examining the following example:
-
-```py
 from muselab import *
 
 song = Song()
@@ -297,6 +262,4 @@ song["C1"]["String"].write(20, [.25, .75, .25, .75, 2.0], [(F5, F6), (E5, E6), (
 song["C1"]["String"].write(24, [1.5, 0.5, 2.0, 1.0, 1.0, 2.0], [(D4, D5), (F4, F5), (E4, E5), (A4, A5), (B4, B5), (C5, C6)])
 song["C1"]["String"].write(32, [2.0, 1.0, 1.0, .25, .75, 1.0, 1.0], [(F5, F6), (E5, E6), (C5, C6), (A4, A5), (D5, D6), (B4, B5), (C5, C6)])
 
-song.save("lemon.mid")
 song.play()
-```

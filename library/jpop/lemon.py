@@ -5,13 +5,6 @@ song.add("A1", 36, key=B3, signature=(4,4), tempo=87)
 song.add("A2", 36)
 song.add("B1", 16)
 song.add("C1", 40)
-song.add("I1", 16)
-song.add("A3", 32)
-song.add("B2", 16)
-song.add("C2", 44)
-song.add("D1", 72)
-song.add("C3", 56)
-
 
 # Section A1
 
@@ -141,11 +134,9 @@ song["B1"]["Vocal"].write(8, [.75, .25, .50, .25, .25, .50, .50, .50, .50, 1.0, 
                              ['あ','り','は','し','な','い','','と','わ','かっ','て','い','る','','あ','の','ひ','の'])
 
 song["B1"]["Guitar 1"].write(14, [      .25,       .25],
-                                 [ (C3, C4),  (C3, C4)],
-                                 ["Ghost note", ""])
+                                 [ (C3, C4),  (C3, C4)])
 song["B1"]["Guitar 2"].write(14, [      .25,       .25],
-                                 [ (C3, C4),  (C3, C4)],
-                                 ["Ghost note", ""])
+                                 [ (C3, C4),  (C3, C4)])
 
 song["B1"]["Drum"].write(0, [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, .50, .166, .167, .167],
                             [XSe, Xhc,  '', Xhc,  '', Xhc,  '', Xhc,  XSe,  XSe,  XSe])
@@ -271,31 +262,5 @@ song["C1"]["String"].write(20, [.25, .75, .25, .75, 2.0], [(F5, F6), (E5, E6), (
 song["C1"]["String"].write(24, [1.5, 0.5, 2.0, 1.0, 1.0, 2.0], [(D4, D5), (F4, F5), (E4, E5), (A4, A5), (B4, B5), (C5, C6)])
 song["C1"]["String"].write(32, [2.0, 1.0, 1.0, .25, .75, 1.0, 1.0], [(F5, F6), (E5, E6), (C5, C6), (A4, A5), (D5, D6), (B4, B5), (C5, C6)])
 
-# Section I1
-
-song["I1"].add("Vocal", Lead_1_Square)
-song["I1"].add("Guitar 1", Electric_Guitar_Clean)
-song["I1"].add("Guitar 2", Electric_Guitar_Clean)
-song["I1"].add("Drum", Percussion)
-song["I1"].add("Piano", Acoustic_Grand_Piano)
-
-song["I1"]["Vocal"].write(15.5, [.25, .25], [C4, D4], ['く','ら'])
-
-song["I1"]["Guitar 1"].write(0, [.50, .50, .50, .50, .50, .50, .50, .50, .50, .50, .50, .50, .50, .50, .50, .50],
-                                [ E5,  C5,  G5,  C5,  B4,  D5,  G5,  B4,  C5,  D5,  G5,  C5,  C5,  D5,  E5,  C5])
-song["I1"]["Guitar 1"].write(8, [.50, .50, .50, .50, .50, .50, .50, .50, 1.0, 1.0, 1.0, 1.0],
-                                [ D5,  C5,  G5,  C5,  C5,  D5,  G5,  C5,  C5,  C5,  D5,  B4])
-
-song["I1"]["Guitar 2"].write(0, [.50, .50, .50, .50, .50, .50, 1.0, .50, .50, .50, .50, .50, .50, 1.0],
-                                [ C4,  G3,  E4,  G3,  D4,  G3,  C4,  F4,  G3,  D4,  G3,  E4,  G3,  C4])
-song["I1"]["Guitar 2"].write(8, [.50, .50, .50, .50, .50, .50, .50, .50, .50, .50, .50, .50, .50, .50, 1.0],
-                                [ F4,  C4,  D4,  G3,  E4,  G3,  C4,  G3,  C4, Ds3,  A3, Ds3,  D4,  E3, Gs3])
-
-song["I1"]["Drum"].write(15, [1], [XSe], ["Snare roll"])
-
-song["I1"]["Piano"].write(0, [             2.0,              2.0,              2.0,              2.0],
-                             [(A2, A3, C4, E4), (G2, G3, B3, D4), (F2, F3, G3, C4), (C2, C3, E3, G3)] )
-song["I1"]["Piano"].write(8, [             2.0,              2.0,                     2.0,                   2.0],
-                             [(F2, C3, F3, A3), (C2, C3, E3, G3), (Ds2, A2, Ds3, Fs3, C4), (E2, B2, E3, Gs3, D4)])
-
-song.view()
+song.save("lemon.mid")
+song.play()

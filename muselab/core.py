@@ -13,19 +13,20 @@ class BaseMidi(dict):
         self.mid.save(name)
 
     def play(self):
-        import pygame
         self.save('temp.mid')
-        freq = 44100
-        bitsize = -16
-        channels = 2
-        buffer = 1024
-        pygame.mixer.init(freq, bitsize, channels, buffer)
-        pygame.mixer.music.set_volume(0.8)
-        clock = pygame.time.Clock()
-        pygame.mixer.music.load('temp.mid')
-        pygame.mixer.music.play()
-        while pygame.mixer.music.get_busy():
-            clock.tick(30)
+        os.system("fluidsynth -a pulseaudio /usr/share/sounds/sf2/FluidR3_GM.sf2 temp.mid")
+        # import pygame
+        # freq = 44100
+        # bitsize = -16
+        # channels = 2
+        # buffer = 1024
+        # pygame.mixer.init(freq, bitsize, channels, buffer)
+        # pygame.mixer.music.set_volume(0.1)
+        # clock = pygame.time.Clock()
+        # pygame.mixer.music.load('temp.mid')
+        # pygame.mixer.music.play()
+        # while pygame.mixer.music.get_busy():
+        #     clock.tick(30)
     
     def view(self, terminal=False):
         self.save('temp.mid')

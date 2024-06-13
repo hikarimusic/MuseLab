@@ -27,19 +27,22 @@ cd MuseLab
 pip install -r requirements.txt
 ```
 
-Install MuseScore (to view the generated MIDI file):
+Install MuseScore to view the generated MIDI file:
 
 ```
 sudo apt-get install musescore3
 ```
 
-(Optional) Install Pygame to play the music in terminal:
+Install FluidSynth to play the music in terminal:
+
+```sh
+sudo apt-get install fluidsynth
+```
+
+Install Pygame to play the piano:
 
 ```sh
 sudo apt-get install python-pygame
-```
-```sh
-sudo apt-get install timidity
 ```
 
 Edit files in VSCode:
