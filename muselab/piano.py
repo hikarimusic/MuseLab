@@ -6,7 +6,7 @@ class Piano:
         super().__init__()
         self.white_key = [pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_f, pygame.K_g, pygame.K_h, pygame.K_j, pygame.K_k, pygame.K_l, pygame.K_SEMICOLON, pygame.K_QUOTE, pygame.K_RETURN]
         self.black_key = [pygame.K_w, pygame.K_e, pygame.K_r ,pygame.K_t, pygame.K_y, pygame.K_u, pygame.K_i, pygame.K_o, pygame.K_p, pygame.K_LEFTBRACKET, pygame.K_RIGHTBRACKET]
-        self.chord_key = [pygame.K_z, pygame.K_x, pygame.K_c, pygame.K_v, pygame.K_b, pygame.K_n, pygame.K_m, pygame.K_COMMA]
+        self.chord_key = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8]
         self.white_note = [0, 2, 4, 5, 7, 9, 11]
         self.black_note = [1, 3, -1, 6, 8, 10, -1]
 
@@ -24,9 +24,9 @@ class Piano:
         self.key_to_chord = {}
         for i, key in enumerate(self.chord_key):
             self.key_to_chord[key] = []
-            for j in [0,2,4]:
-                key_off = self.chord_off + i + j
-                self.key_to_chord[key].append(36 + 12*(key_off//7) + self.white_note[key_off%7])
+            for j in [0,2,4,7]:
+                key_off = i + j
+                self.key_to_chord[key].append(48 + 12*(key_off//7) + self.white_note[key_off%7])
 
     def draw_piano(self, screen):
         white_key_width = 40
@@ -64,7 +64,6 @@ class Piano:
         fs.program_select(0, sfid, 0, 0)
 
         self.keyboard_off = 0
-        self.chord_off = 0
         self.semitone_off = 0
         self.pressed_keys = set()
         self.update_keys()
@@ -104,12 +103,6 @@ class Piano:
                             self.keyboard_off -= 1
                         else:
                             self.keyboard_off += 1
-                        self.update_keys()
-                    elif event.key == pygame.K_SLASH:
-                        if pygame.key.get_mods() & pygame.KMOD_SHIFT:
-                            self.chord_off -= 1
-                        else:
-                            self.chord_off += 1
                         self.update_keys()
                 elif event.type == pygame.KEYUP:
                     if event.key in self.key_to_note:
