@@ -1,0 +1,11 @@
+c1: 32 c4 120
+- melody: acoustic_grand_piano 0.8 0.5
+- bass: acoustic_bass 0.6 0.5
+
+c1.melody: 0
+- | 1 1 1 1 | 1 1 2 |
+- | c4 d4 e4 f4 | g4 a4 g4 |
+
+c1.bass: 0
+- | 2 2 | 2 2 |
+- | c2 c2 | g1 g1 |

@@ -1,0 +1,11 @@
+a1: 32 c4 100
+- piano: acoustic_grand_piano 0.7 0.5
+- strings: string_ensemble_1 0.5 0.5
+
+a1.piano: 0
+- | 2 2 | 2 2 | 2 2 | 2 2 |
+- | c4-e4-g4 f4-a4-c5 | g4-b4-d5 c4-e4-g4 | a3-c4-e4 d4-f4-a4 | g3-b3-d4 c4-e4-g4 |
+
+a1.strings: 0
+- | 4 | 4 | 4 | 4 |
+- | c5 c5 | c5 c5 |

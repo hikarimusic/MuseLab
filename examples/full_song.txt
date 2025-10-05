@@ -1,0 +1,27 @@
+c1: 64 g4 190
+- vocal: violin 1 .5
+- bass: ebassp .5 .5
+- drum1: perc .3 .5
+- drum2: perc .2 .5
+
+c1.vocal: -4
+- | 1.5 .5  1  1 |  1 .5  1  1 .5 |  1  1  1 .5 .5 | 3 .5 .5 | 1 1  1  1 | 
+- |   . e4 e4 d4 | c4 e4 d4 e4 e4 | g4 e4 d4 e4 d4 | - c4 e4 | - . d4 e4 |
+- |   . ki mi ga |  e ga  i ta mi | ra  i no se ka | -  i wa | - .  i ma |
+
+c1.bass: 0
+- |  1  1  1  1 |  1  1  1  1 |  1  1  1  1 |  1  1  1  1 |
+- | c2 c2 c2 c2 | b1 b1 b1 b1 | a1 a1 a1 a1 | a1 a1 g1 g1 |
+
+c1.drum1: 0
+- |  1  1 .5 .5  1 |  1  1 .5 .5  1 |  1  1 .5 .5  1 | .5 .5  1 .5 .5  1 |
+- | xb xs xb xb xs | xb xs xb xb xs | xb xs xb xb xs | xb xb xs xb xb xs |
+
+c1.drum2: 0
+- |   1  1  1  1 |  1  1  1  1 |  1  1  1  1 |  1  1  1  1 | 
+- | xc1 xh xh xh | xh xh xh xh | xh xh xh xh | xh xh xh xh |
+
+c1.vocal: 12
+- | 2  1  1 |  1 .5  1  1 .5 | 1  1  1  1 |  1 .5 1.5 1 | 4 |
+- | . d4 e4 | f4 e4 f4 e4 d4 | - b3 c4 d4 | e4 f4  e4 . | . |
+- | .  i tu | ka no so ra ni | - hi bi ki | ka se  te . | . |

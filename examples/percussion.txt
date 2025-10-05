@@ -1,0 +1,16 @@
+d1: 32 c4 120
+- kick: percussion 0.8 0.5
+- snare: percussion 0.7 0.5
+- hihat: percussion 0.4 0.5
+
+d1.kick: 0
+- | 1 1 1 1 | 1 1 1 1 |
+- | xb . xb . | xb . xb xb |
+
+d1.snare: 0
+- | 1 1 1 1 | 1 1 1 1 |
+- | . xs . xs | . xs . xs |
+
+d1.hihat: 0
+- | 0.5 0.5 0.5 0.5 | 0.5 0.5 0.5 0.5 | 0.5 0.5 0.5 0.5 | 0.5 0.5 0.5 0.5 |
+- | xhc xhc xhc xhc | xhc xhc xhc xhc | xhc xhc xhc xhc | xhc xhc xhc xhc |
