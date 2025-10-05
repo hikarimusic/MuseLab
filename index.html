@@ -58,6 +58,12 @@
     </div>
   </div>
 
+  <!-- NEW: Timeline ruler -->
+  <div id="timeline" class="timeline">
+    <div id="timelineRuler" class="timeline-ruler"></div>
+    <div id="timelineSections" class="timeline-sections"></div>
+  </div>
+
   <div class="editor-container">
     <div id="status" class="status-bar"></div>
     <div id="error" class="error-bar"></div>
@@ -97,13 +103,6 @@
     <p class="example">- | . ki mi ga | → Rest, then syllables for each note</p>
     <br>
     
-    <h3>Keyboard Shortcuts</h3>
-    <p><code>Ctrl+E</code> or <code>Cmd+E</code> - Toggle Examples</p>
-    <p><code>Ctrl+H</code> or <code>Cmd+H</code> - Toggle Guide</p>
-    <p><code>Ctrl+S</code> or <code>Cmd+S</code> - Save File</p>
-    <p><code>Ctrl+Enter</code> or <code>Cmd+Enter</code> - Play/Stop</p>
-    <br>
-    
     <h3>Instrument Reference</h3>
     <p class="note-text">Use shortcut <code>apiano</code> or number <code>0</code> in track definition</p>
     <div id="instrumentList" class="code-list"></div>
@@ -122,21 +121,9 @@
   <div id="examplePanel" class="side-panel">
     <h3>Examples</h3>
     <div id="exampleList" class="example-list">
-      <div class="example-item" data-file="examples/basic.txt">
-        <div class="example-name">Basic Example</div>
-        <div class="example-desc">Simple melody with bass</div>
-      </div>
-      <div class="example-item" data-file="examples/chords.txt">
-        <div class="example-name">Chord Progression</div>
-        <div class="example-desc">Using chord notation</div>
-      </div>
-      <div class="example-item" data-file="examples/percussion.txt">
-        <div class="example-name">Percussion Demo</div>
-        <div class="example-desc">Drum patterns and rhythms</div>
-      </div>
-      <div class="example-item" data-file="examples/full_song.txt">
-        <div class="example-name">Full Song</div>
-        <div class="example-desc">Complete composition with lyrics</div>
+      <div class="example-item" data-file="examples/打上花火.txt">
+        <div class="example-name">打上花火</div>
+        <div class="example-desc">DAOKO×米津玄師</div>
       </div>
     </div>
   </div>

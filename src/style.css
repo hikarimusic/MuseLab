@@ -87,6 +87,87 @@ button svg {
   height: 14px;
 }
 
+/* NEW: Timeline styles */
+.timeline {
+  background: #252526;
+  border-bottom: 1px solid #3e3e42;
+  height: 35px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+}
+
+.timeline-ruler {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: #4ec9b0;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(78, 201, 176, 0.6);
+}
+
+.timeline-sections {
+  display: flex;
+  height: 100%;
+  position: relative;
+}
+
+.timeline-section {
+  height: 100%;
+  border-right: 1px solid #3e3e42;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  overflow: hidden;
+}
+
+.timeline-section:hover {
+  background: rgba(86, 156, 214, 0.1);
+}
+
+.timeline-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #569cd6;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.timeline-section-beats {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 0.65rem;
+  color: #999;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.timeline-section-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.05;
+  background: #569cd6;
+}
+
+.timeline-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  color: #6a6a6a;
+  font-size: 0.75rem;
+}
+
 .editor-container {
   flex: 1;
   display: flex;
@@ -165,7 +246,7 @@ textarea::-webkit-scrollbar-thumb:hover {
 .side-panel {
   position: fixed;
   right: -400px;
-  top: 50px;
+  top: 85px; /* Updated to account for topbar + timeline */
   bottom: 0;
   width: 400px;
   background: #252526;

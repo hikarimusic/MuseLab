@@ -3,6 +3,12 @@ let panners = {};
 let isPlaying = false;
 let scheduledNotes = [];
 let audioContext = null;
+let playbackStartBeat = 0; // NEW: Track playback start position in beats
+let totalBeats = 0; // NEW: Total beats in composition
+let playbackStartTime = 0; // NEW: When playback started (audioContext time)
+let playbackAnimationId = null; // NEW: Animation frame ID
+let currentTempo = 120; // NEW: Track current tempo for ruler animation
+let endTimeout = null; // NEW: Track the end timeout to clear it properly
 
 function showError(msg) {
     const el = document.getElementById('error');
@@ -115,6 +121,7 @@ function parseNotation(text) {
                     const isPercussion = track.isPercussion || false;
                     let time = startOffset;
                     let lastEvent = null;
+                    let lastMelody = null; // NEW: Track previous melody
                     
                     pendingRhythm.forEach((segment, segIdx) => {
                         const rhythms = segment.split(/\s+/).filter(r => r);
@@ -122,7 +129,12 @@ function parseNotation(text) {
                         
                         rhythms.forEach((r, i) => {
                             const duration = r === '.' ? 0 : parseFloat(r);
-                            const melody = melodies[i];
+                            let melody = melodies[i];
+                            
+                            // NEW: If '\', use previous melody
+                            if (melody === '\\') {
+                                melody = lastMelody;
+                            }
                             
                             if (melody === '-') {
                                 if (lastEvent) {
@@ -141,6 +153,7 @@ function parseNotation(text) {
                                     };
                                     track.events.push(event);
                                     lastEvent = event;
+                                    lastMelody = melody; // NEW: Store this melody
                                 }
                             }
                             time += duration;
@@ -170,6 +183,96 @@ function parseNotation(text) {
         }
     }
     return sections;
+}
+
+// NEW: Render timeline with sections
+function renderTimeline() {
+    const notation = document.getElementById('notation').value;
+    const sections = parseNotation(notation);
+    const timelineSections = document.getElementById('timelineSections');
+    
+    // Clear timeline
+    timelineSections.innerHTML = '';
+    
+    if (Object.keys(sections).length === 0) {
+        timelineSections.innerHTML = '<div class="timeline-empty">No sections defined</div>';
+        totalBeats = 0;
+        return;
+    }
+    
+    // Calculate total beats
+    totalBeats = Object.values(sections).reduce((sum, section) => sum + section.length, 0);
+    
+    // Render each section
+    let beatOffset = 0;
+    Object.entries(sections).forEach(([name, section]) => {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'timeline-section';
+        sectionDiv.style.width = `${(section.length / totalBeats) * 100}%`;
+        sectionDiv.dataset.sectionName = name;
+        sectionDiv.dataset.startBeat = beatOffset;
+        sectionDiv.dataset.endBeat = beatOffset + section.length;
+        
+        const bg = document.createElement('div');
+        bg.className = 'timeline-section-bg';
+        sectionDiv.appendChild(bg);
+        
+        const label = document.createElement('div');
+        label.className = 'timeline-section-label';
+        label.textContent = name;
+        sectionDiv.appendChild(label);
+        
+        const beats = document.createElement('div');
+        beats.className = 'timeline-section-beats';
+        beats.textContent = section.length;
+        sectionDiv.appendChild(beats);
+        
+        timelineSections.appendChild(sectionDiv);
+        beatOffset += section.length;
+    });
+    
+    // Update ruler position
+    updateRulerPosition();
+}
+
+// NEW: Update ruler position based on playbackStartBeat
+function updateRulerPosition() {
+    const ruler = document.getElementById('timelineRuler');
+    if (totalBeats === 0) {
+        ruler.style.left = '0px';
+        return;
+    }
+    
+    const percentage = (playbackStartBeat / totalBeats) * 100;
+    ruler.style.left = `${percentage}%`;
+}
+
+// NEW: Animate ruler during playback
+function animateRuler() {
+    if (!isPlaying || !audioContext) {
+        return;
+    }
+    
+    const elapsedTime = audioContext.currentTime - playbackStartTime;
+    const elapsedBeats = (elapsedTime / 60) * currentTempo;
+    const currentBeat = Math.min(playbackStartBeat + elapsedBeats, totalBeats);
+    
+    const ruler = document.getElementById('timelineRuler');
+    const percentage = (currentBeat / totalBeats) * 100;
+    ruler.style.left = `${percentage}%`;
+    
+    playbackAnimationId = requestAnimationFrame(animateRuler);
+}
+
+// NEW: Handle timeline click to set playback position
+function handleTimelineClick(e) {
+    const timeline = document.getElementById('timeline');
+    const rect = timeline.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = clickX / rect.width;
+    
+    playbackStartBeat = Math.max(0, Math.min(totalBeats, percentage * totalBeats));
+    updateRulerPosition();
 }
 
 async function loadInstrument(programNumber, panValue = 0.5, isPercussion = false) {
@@ -231,7 +334,7 @@ async function play() {
     isPlaying = true;
 
     const firstSection = Object.values(sections)[0];
-    const secondsPerBeat = 60 / firstSection.tempo;
+    currentTempo = firstSection.tempo; // Store tempo for animation
 
     const instrumentsToLoad = new Map();
     Object.values(sections).forEach(section => {
@@ -251,26 +354,43 @@ async function play() {
 
     hideStatus();
 
+    // Start playback animation
+    playbackStartTime = audioContext.currentTime;
+    animateRuler();
+
+    // NEW: Calculate beat offset for each section
+    const sectionBeatOffsets = {};
+    let beatOffset = 0;
+    Object.entries(sections).forEach(([name, section]) => {
+        sectionBeatOffsets[name] = beatOffset;
+        beatOffset += section.length;
+    });
+
     let minStartTime = 0;
-    let sectionOffset = 0;
     
-    Object.values(sections).forEach(section => {
+    // Calculate minimum start time considering all tracks
+    Object.entries(sections).forEach(([sectionName, section]) => {
         const secondsPerBeat = 60 / section.tempo;
+        const sectionBeatStart = sectionBeatOffsets[sectionName];
+        
         Object.values(section.tracks).forEach(track => {
             track.events.forEach(event => {
-                const absoluteTime = sectionOffset + event.time * secondsPerBeat;
+                const eventBeat = sectionBeatStart + event.time;
+                const absoluteTime = eventBeat * secondsPerBeat;
                 minStartTime = Math.min(minStartTime, absoluteTime);
             });
         });
-        sectionOffset += section.length * (60 / section.tempo);
     });
 
     const timeShift = -minStartTime;
-    let totalEndMs = 0;
+    
+    // NEW: Convert playbackStartBeat to time offset
+    const startBeatOffset = playbackStartBeat;
+    let totalEndBeat = 0;
     
     Object.entries(sections).forEach(([sectionName, section]) => {
         const secondsPerBeat = 60 / section.tempo;
-        const sectionStartSec = totalEndMs / 1000;
+        const sectionBeatStart = sectionBeatOffsets[sectionName];
         
         Object.entries(section.tracks).forEach(([trackName, track]) => {
             const key = `${track.isPercussion ? 'perc' : track.instrument}_${track.pan}`;
@@ -279,39 +399,64 @@ async function play() {
             if (!instrument) return;
             
             track.events.forEach(event => {
-                const startTimeSec = sectionStartSec + event.time * secondsPerBeat + timeShift;
-                const duration = event.duration * secondsPerBeat;
+                const eventBeat = sectionBeatStart + event.time;
                 
-                const timeout = setTimeout(() => {
-                    if (isPlaying) {
-                        event.notes.forEach(note => {
-                            instrument.play(note, audioContext.currentTime, { duration, gain: track.volume });
-                        });
-                    }
-                }, startTimeSec * 1000);
-                
-                scheduledNotes.push(timeout);
+                // NEW: Only schedule events at or after the playback start beat
+                if (eventBeat >= startBeatOffset) {
+                    const startTimeSec = (eventBeat - startBeatOffset) * secondsPerBeat + timeShift;
+                    const duration = event.duration * secondsPerBeat;
+                    
+                    const timeout = setTimeout(() => {
+                        if (isPlaying) {
+                            event.notes.forEach(note => {
+                                instrument.play(note, audioContext.currentTime, { duration, gain: track.volume });
+                            });
+                        }
+                    }, startTimeSec * 1000);
+                    
+                    scheduledNotes.push(timeout);
+                }
             });
         });
         
-        totalEndMs += section.length * secondsPerBeat * 1000;
+        totalEndBeat = sectionBeatStart + section.length;
     });
 
-    setTimeout(() => {
-        if (isPlaying) stop();
-    }, totalEndMs + timeShift * 1000);
+    // Calculate end time based on total duration minus start offset
+    const endTime = (totalEndBeat - startBeatOffset) * (60 / firstSection.tempo) + timeShift;
+    
+    endTimeout = setTimeout(() => {
+        if (isPlaying) stop(true); // true = auto-stop at end
+    }, endTime * 1000);
 }
 
-function stop() {
+function stop(autoStop = false) {
     isPlaying = false;
     scheduledNotes.forEach(timeout => clearTimeout(timeout));
     scheduledNotes = [];
+    
+    // Clear the end timeout
+    if (endTimeout) {
+        clearTimeout(endTimeout);
+        endTimeout = null;
+    }
+    
+    // Stop ruler animation
+    if (playbackAnimationId) {
+        cancelAnimationFrame(playbackAnimationId);
+        playbackAnimationId = null;
+    }
+    
+    // If auto-stopped at end, reset ruler to start; otherwise keep current position
+    if (autoStop) {
+        playbackStartBeat = 0;
+    }
+    updateRulerPosition();
     
     document.getElementById('playBtn').style.display = 'flex';
     document.getElementById('stopBtn').style.display = 'none';
 }
 
-// NEW: Save function
 function saveFile() {
     const notation = document.getElementById('notation').value;
     
@@ -334,13 +479,11 @@ function saveFile() {
     setTimeout(hideStatus, 2000);
 }
 
-// Panel management
 function closeAllPanels() {
     document.getElementById('guidePanel').classList.remove('open');
     document.getElementById('examplePanel').classList.remove('open');
 }
 
-// NEW: Helper function for toggling panels
 function togglePanel(panelId) {
     const panel = document.getElementById(panelId);
     const otherPanelId = panelId === 'guidePanel' ? 'examplePanel' : 'guidePanel';
@@ -354,7 +497,6 @@ function togglePanel(panelId) {
     }
 }
 
-// Load example from file
 async function loadExample(filepath) {
     try {
         const response = await fetch(filepath);
@@ -363,6 +505,7 @@ async function loadExample(filepath) {
         }
         const content = await response.text();
         document.getElementById('notation').value = content;
+        renderTimeline(); // NEW: Update timeline when loading example
         closeAllPanels();
     } catch (error) {
         showError(`Could not load example: ${error.message}`);
@@ -372,43 +515,50 @@ async function loadExample(filepath) {
 // Event listeners
 document.getElementById('playBtn').addEventListener('click', play);
 document.getElementById('stopBtn').addEventListener('click', stop);
-document.getElementById('saveBtn').addEventListener('click', saveFile); // NEW
+document.getElementById('saveBtn').addEventListener('click', saveFile);
 
 document.getElementById('guideBtn').addEventListener('click', () => {
-    togglePanel('guidePanel'); // MODIFIED
+    togglePanel('guidePanel');
 });
 
 document.getElementById('exampleBtn').addEventListener('click', () => {
-    togglePanel('examplePanel'); // MODIFIED
+    togglePanel('examplePanel');
 });
 
-// NEW: Keyboard shortcuts
+// NEW: Timeline click handler
+document.getElementById('timeline').addEventListener('click', handleTimelineClick);
+
+// NEW: Update timeline when notation changes
+document.getElementById('notation').addEventListener('input', () => {
+    // Debounce timeline rendering
+    clearTimeout(window.timelineUpdateTimeout);
+    window.timelineUpdateTimeout = setTimeout(() => {
+        renderTimeline();
+    }, 500);
+});
+
 document.addEventListener('keydown', (e) => {
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     const modifier = isMac ? e.metaKey : e.ctrlKey;
     
-    // Ctrl/Cmd + S: Save
     if (modifier && e.key === 's') {
         e.preventDefault();
         saveFile();
         return;
     }
     
-    // Ctrl/Cmd + E: Toggle Examples
     if (modifier && e.key === 'e') {
         e.preventDefault();
         togglePanel('examplePanel');
         return;
     }
     
-    // Ctrl/Cmd + H: Toggle Guide
     if (modifier && e.key === 'h') {
         e.preventDefault();
         togglePanel('guidePanel');
         return;
     }
     
-    // Ctrl/Cmd + Enter: Play/Stop
     if (modifier && e.key === 'Enter') {
         e.preventDefault();
         if (isPlaying) {
@@ -420,7 +570,6 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Add click handlers to example items
 document.querySelectorAll('.example-item').forEach(item => {
     item.addEventListener('click', () => {
         const filepath = item.getAttribute('data-file');
@@ -428,9 +577,7 @@ document.querySelectorAll('.example-item').forEach(item => {
     });
 });
 
-// Populate instrument list in guide
 function populateGuide() {
-    // Create reverse map for instrument shortcuts
     const midiToInstrumentShortcut = {};
     Object.entries(instrumentShortcuts).forEach(([shortcut, midi]) => {
         if (!midiToInstrumentShortcut[midi]) {
@@ -439,7 +586,6 @@ function populateGuide() {
         midiToInstrumentShortcut[midi].push(shortcut);
     });
     
-    // Populate instruments
     const instrumentListEl = document.getElementById('instrumentList');
     instrumentList.forEach((name, index) => {
         const shortcuts = midiToInstrumentShortcut[index];
@@ -453,24 +599,44 @@ function populateGuide() {
         instrumentListEl.appendChild(p);
     });
     
-    // Populate notes (C0 to B8)
     const noteListEl = document.getElementById('noteList');
-    const noteNames = ['c', 'cs', 'd', 'ds', 'e', 'f', 'fs', 'g', 'gs', 'a', 'as', 'b'];
+    const noteSequence = [
+        { names: ['c'], display: 'C', offset: 0 },
+        { names: ['cs', 'db'], display: ['C#', 'Db'], offset: 1 },
+        { names: ['d'], display: 'D', offset: 2 },
+        { names: ['ds', 'eb'], display: ['D#', 'Eb'], offset: 3 },
+        { names: ['e'], display: 'E', offset: 4 },
+        { names: ['f'], display: 'F', offset: 5 },
+        { names: ['fs', 'gb'], display: ['F#', 'Gb'], offset: 6 },
+        { names: ['g'], display: 'G', offset: 7 },
+        { names: ['gs', 'ab'], display: ['G#', 'Ab'], offset: 8 },
+        { names: ['a'], display: 'A', offset: 9 },
+        { names: ['as', 'bb'], display: ['A#', 'Bb'], offset: 10 },
+        { names: ['b'], display: 'B', offset: 11 }
+    ];
+    
     for (let octave = 0; octave <= 8; octave++) {
-        noteNames.forEach((noteName, index) => {
-            const midiNum = (octave + 1) * 12 + index;
+        noteSequence.forEach(noteInfo => {
+            const midiNum = (octave + 1) * 12 + noteInfo.offset;
             if (midiNum <= 127) {
-                const p = document.createElement('p');
-                p.innerHTML = `${noteName}${octave}: <code>${noteName}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
-                noteListEl.appendChild(p);
+                if (Array.isArray(noteInfo.display)) {
+                    // Show both sharp and flat on separate lines
+                    noteInfo.names.forEach((noteName, idx) => {
+                        const p = document.createElement('p');
+                        p.innerHTML = `${noteInfo.display[idx]}${octave}: <code>${noteName}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
+                        noteListEl.appendChild(p);
+                    });
+                } else {
+                    // Single note name
+                    const p = document.createElement('p');
+                    p.innerHTML = `${noteInfo.display}${octave}: <code>${noteInfo.names[0]}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
+                    noteListEl.appendChild(p);
+                }
             }
         });
     }
     
-    // Populate percussion with shortcuts
     const percussionListEl = document.getElementById('percussionList');
-    
-    // Create reverse map to find shortcuts for each MIDI number
     const midiToShortcut = {};
     Object.entries(percussionMap).forEach(([shortcut, midi]) => {
         if (!midiToShortcut[midi]) {
@@ -479,7 +645,6 @@ function populateGuide() {
         midiToShortcut[midi].push(shortcut);
     });
     
-    // Display percussion with shortcuts
     Object.entries(percussionNames).forEach(([midiNum, name]) => {
         const shortcuts = midiToShortcut[midiNum];
         const p = document.createElement('p');
@@ -493,5 +658,6 @@ function populateGuide() {
     });
 }
 
-// Initialize guide when page loads
+// Initialize
 populateGuide();
+renderTimeline(); // NEW: Render timeline on page load
