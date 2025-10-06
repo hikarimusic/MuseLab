@@ -47,10 +47,10 @@ const percussionMap = {
     xb: 36,   // Bass Drum
     xss: 37,  // Side Stick
     xs: 38,   // Acoustic Snare
-    xhc: 39,  // Hand Clap
+    xhcl: 39,  // Hand Clap
     xse: 40,  // Electric Snare
     xtlf: 41, // Low Floor Tom
-    xhc2: 42, // Closed Hi Hat
+    xhc: 42, // Closed Hi Hat
     xthf: 43, // High Floor Tom
     xhp: 44,  // Pedal Hi-Hat
     xtl: 45,  // Low Tom

@@ -141,7 +141,7 @@ function parseNotation(text) {
                                     lastEvent.duration += duration;
                                 }
                             } else if (melody && melody !== '.') {
-                                const notes = melody.includes('-') && !melody.toLowerCase().startsWith('x') ? 
+                                const notes = melody.includes('-') ? 
                                     parseChord(melody, keyOffset, isPercussion) : 
                                     [parseNote(melody, keyOffset, isPercussion)];
                                 if (notes && notes[0] !== null) {
