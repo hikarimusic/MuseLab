@@ -57,11 +57,124 @@ function parseNotation(text) {
     const sections = {};
     let currentSection = null;
     let currentTrack = null;
-    let pendingRhythm = null;
-    let pendingMelody = null;
+    let pendingLines = []; // Collect all - | lines
+
+    // Helper to identify line type
+    function identifyLineType(content) {
+        const segments = content.join(' ');
+        // Check if it's rhythm (contains numbers/decimals)
+        if (/^[\d\s.]+$/.test(segments)) {
+            return 'rhythm';
+        }
+        // Check if it's melody (contains note patterns or musical symbols)
+        if (/[a-g][sb]?\d+|^[\s.\-\\=]+$/i.test(segments)) {
+            return 'melody';
+        }
+        // Otherwise it's lyrics
+        return 'lyrics';
+    }
+
+    // Helper to process pending lines
+    function processPendingLines() {
+        if (pendingLines.length === 0 || !currentSection || !currentTrack) return;
+        
+        let rhythm = null;
+        let melody = null;
+        let lyrics = null;
+        
+        // Identify each line
+        for (const line of pendingLines) {
+            const type = identifyLineType(line);
+            if (type === 'rhythm') rhythm = line;
+            else if (type === 'melody') melody = line;
+            else if (type === 'lyrics') lyrics = line;
+        }
+        
+        // Process if we have both rhythm and melody
+        if (rhythm && melody) {
+            const track = sections[currentSection]?.tracks[currentTrack];
+            const section = sections[currentSection];
+            
+            if (track && section) {
+                const startOffset = track.startOffset || 0;
+                const keyOffset = section.key;
+                const isPercussion = track.isPercussion || false;
+                let time = startOffset;
+                let lastEvent = null;
+                let lastMelody = null;
+                let lastNotes = null; // NEW: Track last notes array
+                
+                rhythm.forEach((segment, segIdx) => {
+                    const rhythms = segment.split(/\s+/).filter(r => r);
+                    const melodies = melody[segIdx]?.split(/\s+/).filter(m => m) || [];
+                    
+                    rhythms.forEach((r, i) => {
+                        const duration = r === '.' ? 0 : parseFloat(r);
+                        let melodyStr = melodies[i];
+                        
+                        if (melodyStr === '\\') {
+                            melodyStr = lastMelody;
+                        }
+                        
+                        if (melodyStr === '-') {
+                            if (lastEvent) {
+                                lastEvent.duration += duration;
+                            }
+                        } else if (melodyStr === '=') { // NEW: Same note as previous
+                            if (lastNotes) {
+                                const event = {
+                                    time,
+                                    duration,
+                                    notes: [...lastNotes], // Copy the last notes
+                                    lyric: null
+                                };
+                                track.events.push(event);
+                                lastEvent = event;
+                            }
+                        } else if (melodyStr && melodyStr !== '.') {
+                            const notes = melodyStr.includes('-') ? 
+                                parseChord(melodyStr, keyOffset, isPercussion) : 
+                                [parseNote(melodyStr, keyOffset, isPercussion)];
+                            if (notes && notes[0] !== null) {
+                                const event = {
+                                    time,
+                                    duration,
+                                    notes: notes.filter(n => n !== null),
+                                    lyric: null
+                                };
+                                track.events.push(event);
+                                lastEvent = event;
+                                lastMelody = melodyStr;
+                                lastNotes = event.notes; // NEW: Store notes array
+                            }
+                        }
+                        time += duration;
+                    });
+                });
+                
+                // Add lyrics if present
+                if (lyrics && track.events.length > 0) {
+                    let eventIdx = 0;
+                    lyrics.forEach(segment => {
+                        const lyricsArr = segment.split(/\s+/).filter(l => l);
+                        lyricsArr.forEach(lyric => {
+                            if (eventIdx < track.events.length && lyric !== '.') {
+                                track.events[eventIdx].lyric = lyric;
+                            }
+                            eventIdx++;
+                        });
+                    });
+                }
+            }
+        }
+        
+        pendingLines = [];
+    }
 
     for (const line of lines) {
         if (line.match(/^[a-z0-9_]+:/i) && !line.includes('.')) {
+            processPendingLines();
+            
             const [name, ...params] = line.split(/[\s:]+/).filter(p => p);
             const length = parseInt(params[0]) || 32;
             const keyStr = params[1] || 'c4';
@@ -77,9 +190,9 @@ function parseNotation(text) {
             };
             currentSection = name;
             currentTrack = null;
-            pendingRhythm = null;
-            pendingMelody = null;
         } else if (line.startsWith('- ') && line.includes(':') && !currentTrack) {
+            processPendingLines();
+            
             const match = line.match(/- ([a-z0-9_]+):\s*([a-z0-9_]+)(?:\s+([\d.]+))?(?:\s+([\d.]+))?/i);
             if (match && currentSection) {
                 const [, trackName, instrumentName, vol, pan] = match;
@@ -94,6 +207,8 @@ function parseNotation(text) {
                 };
             }
         } else if (line.match(/^[a-z0-9_]+\.[a-z0-9_]+:/i)) {
+            processPendingLines();
+            
             const [trackPath, offsetStr] = line.split(':').map(s => s.trim());
             const [secName, trkName] = trackPath.split('.');
             currentSection = secName;
@@ -102,86 +217,14 @@ function parseNotation(text) {
             if (sections[currentSection]?.tracks[currentTrack]) {
                 sections[currentSection].tracks[currentTrack].startOffset = parseFloat(offsetStr) || 0;
             }
-            
-            pendingRhythm = null;
-            pendingMelody = null;
         } else if (line.startsWith('- |') && currentSection && currentTrack) {
             const content = line.substring(3).split('|').map(s => s.trim()).filter(s => s);
-            
-            if (!pendingRhythm) {
-                pendingRhythm = content;
-            } else if (!pendingMelody) {
-                pendingMelody = content;
-                const track = sections[currentSection]?.tracks[currentTrack];
-                const section = sections[currentSection];
-                
-                if (track && section) {
-                    const startOffset = track.startOffset || 0;
-                    const keyOffset = section.key;
-                    const isPercussion = track.isPercussion || false;
-                    let time = startOffset;
-                    let lastEvent = null;
-                    let lastMelody = null; // NEW: Track previous melody
-                    
-                    pendingRhythm.forEach((segment, segIdx) => {
-                        const rhythms = segment.split(/\s+/).filter(r => r);
-                        const melodies = pendingMelody[segIdx]?.split(/\s+/).filter(m => m) || [];
-                        
-                        rhythms.forEach((r, i) => {
-                            const duration = r === '.' ? 0 : parseFloat(r);
-                            let melody = melodies[i];
-                            
-                            // NEW: If '\', use previous melody
-                            if (melody === '\\') {
-                                melody = lastMelody;
-                            }
-                            
-                            if (melody === '-') {
-                                if (lastEvent) {
-                                    lastEvent.duration += duration;
-                                }
-                            } else if (melody && melody !== '.') {
-                                const notes = melody.includes('-') ? 
-                                    parseChord(melody, keyOffset, isPercussion) : 
-                                    [parseNote(melody, keyOffset, isPercussion)];
-                                if (notes && notes[0] !== null) {
-                                    const event = {
-                                        time,
-                                        duration,
-                                        notes: notes.filter(n => n !== null),
-                                        lyric: null
-                                    };
-                                    track.events.push(event);
-                                    lastEvent = event;
-                                    lastMelody = melody; // NEW: Store this melody
-                                }
-                            }
-                            time += duration;
-                        });
-                    });
-                }
-            } else {
-                const lyrics = content;
-                const track = sections[currentSection]?.tracks[currentTrack];
-                
-                if (track && track.events.length > 0) {
-                    let eventIdx = 0;
-                    lyrics.forEach(segment => {
-                        const lyricsArr = segment.split(/\s+/).filter(l => l);
-                        lyricsArr.forEach(lyric => {
-                            if (eventIdx < track.events.length && lyric !== '.') {
-                                track.events[eventIdx].lyric = lyric;
-                            }
-                            eventIdx++;
-                        });
-                    });
-                }
-                
-                pendingRhythm = null;
-                pendingMelody = null;
-            }
+            pendingLines.push(content);
         }
     }
+    
+    processPendingLines(); // Process any remaining lines
+    
     return sections;
 }
 
@@ -481,12 +524,12 @@ function saveFile() {
 
 function closeAllPanels() {
     document.getElementById('guidePanel').classList.remove('open');
-    document.getElementById('examplePanel').classList.remove('open');
+    document.getElementById('inspirationPanel').classList.remove('open');
 }
 
 function togglePanel(panelId) {
     const panel = document.getElementById(panelId);
-    const otherPanelId = panelId === 'guidePanel' ? 'examplePanel' : 'guidePanel';
+    const otherPanelId = panelId === 'guidePanel' ? 'inspirationPanel' : 'guidePanel';
     const otherPanel = document.getElementById(otherPanelId);
     
     if (panel.classList.contains('open')) {
@@ -512,6 +555,113 @@ async function loadExample(filepath) {
     }
 }
 
+function insertAtCursor(text) {
+    const textarea = document.getElementById('notation');
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end);
+    
+    textarea.value = before + text + after;
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+    textarea.focus();
+    
+    renderTimeline();
+}
+
+function generateRandomMelody() {
+    // Use only natural notes (C major scale)
+    const noteNames = ['c', 'd', 'e', 'f', 'g', 'a', 'b'];
+    const intervals = [];
+    const weights = [];
+    
+    // Collect probabilities for each interval
+    for (let i = 0; i <= 7; i++) {
+        const weight = parseInt(document.getElementById(`interval${i}`).value) || 0;
+        if (i === 0) {
+            intervals.push(0);
+            weights.push(weight);
+        } else {
+            intervals.push(i);
+            intervals.push(-i);
+            weights.push(weight);
+            weights.push(weight);
+        }
+    }
+    
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    if (totalWeight === 0) {
+        showError('Please set at least one interval probability > 0');
+        return;
+    }
+    
+    // Generate melody
+    const melody = [];
+    
+    // Start at random position in octave 4 (absolute positions 28-34)
+    let absolutePosition = 4 * 7 + Math.floor(Math.random() * 7); // 4*7=28 is C4
+    
+    for (let i = 0; i < 10; i++) {
+        // Calculate current note
+        const octave = Math.floor(absolutePosition / 7);
+        const noteIndex = absolutePosition % 7;
+        melody.push(noteNames[noteIndex] + octave);
+        
+        if (i < 9) { // Don't need interval for last note
+            // Weighted random selection for next interval
+            let random = Math.random() * totalWeight;
+            let selectedInterval = 0;
+            
+            for (let j = 0; j < intervals.length; j++) {
+                random -= weights[j];
+                if (random <= 0) {
+                    selectedInterval = intervals[j];
+                    break;
+                }
+            }
+            
+            // Apply interval to absolute position
+            absolutePosition += selectedInterval;
+        }
+    }
+    
+    insertAtCursor(melody.join(' '));
+}
+
+function generateRandomRhythm() {
+    const durations = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+    const durationIds = ['025', '05', '075', '1', '125', '15', '175', '2'];
+    const weights = [];
+    
+    // Collect probabilities
+    for (const id of durationIds) {
+        const weight = parseInt(document.getElementById(`duration${id}`).value) || 0;
+        weights.push(weight);
+    }
+    
+    const totalWeight = weights.reduce((a, b) => a + b, 0);
+    if (totalWeight === 0) {
+        showError('Please set at least one duration probability > 0');
+        return;
+    }
+    
+    // Generate rhythm
+    const rhythm = [];
+    for (let i = 0; i < 10; i++) {
+        let random = Math.random() * totalWeight;
+        
+        for (let j = 0; j < durations.length; j++) {
+            random -= weights[j];
+            if (random <= 0) {
+                rhythm.push(durations[j]);
+                break;
+            }
+        }
+    }
+    
+    insertAtCursor(rhythm.join(' '));
+}
+
 // Event listeners
 document.getElementById('playBtn').addEventListener('click', play);
 document.getElementById('stopBtn').addEventListener('click', stop);
@@ -521,9 +671,12 @@ document.getElementById('guideBtn').addEventListener('click', () => {
     togglePanel('guidePanel');
 });
 
-document.getElementById('exampleBtn').addEventListener('click', () => {
-    togglePanel('examplePanel');
+document.getElementById('inspirationBtn').addEventListener('click', () => {
+    togglePanel('inspirationPanel');
 });
+
+document.getElementById('generateMelodyBtn').addEventListener('click', generateRandomMelody);
+document.getElementById('generateRhythmBtn').addEventListener('click', generateRandomRhythm);
 
 // NEW: Timeline click handler
 document.getElementById('timeline').addEventListener('click', handleTimelineClick);
@@ -549,7 +702,7 @@ document.addEventListener('keydown', (e) => {
     
     if (modifier && e.key === 'e') {
         e.preventDefault();
-        togglePanel('examplePanel');
+        togglePanel('inspirationPanel');
         return;
     }
     

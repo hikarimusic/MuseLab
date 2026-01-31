@@ -20,12 +20,12 @@
     </div>
     
     <div class="controls">
-      <button id="exampleBtn" title="Examples (Ctrl+E)">
+      <button id="inspirationBtn" title="Inspiration (Ctrl+E)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
         </svg>
-        Examples
+        Inspiration
       </button>
       <button id="guideBtn" title="Guide (Ctrl+H)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -118,8 +118,70 @@
     <div id="percussionList" class="code-list"></div>
   </div>
 
-  <div id="examplePanel" class="side-panel">
-    <h3>Examples</h3>
+  <div id="inspirationPanel" class="side-panel">
+    <h3>Inspiration</h3>
+    
+    <h4>Random Melody</h4>
+    <p class="note-text">Generates 10 notes. Set interval probabilities (±0 to ±7):</p>
+    <div class="random-inputs">
+      <div class="input-row">
+        <label>±0:</label><input type="number" id="interval0" value="1" min="0">
+      </div>
+      <div class="input-row">
+        <label>±1:</label><input type="number" id="interval1" value="1" min="0">
+      </div>
+      <div class="input-row">
+        <label>±2:</label><input type="number" id="interval2" value="1" min="0">
+      </div>
+      <div class="input-row">
+        <label>±3:</label><input type="number" id="interval3" value="0" min="0">
+      </div>
+      <div class="input-row">
+        <label>±4:</label><input type="number" id="interval4" value="0" min="0">
+      </div>
+      <div class="input-row">
+        <label>±5:</label><input type="number" id="interval5" value="0" min="0">
+      </div>
+      <div class="input-row">
+        <label>±6:</label><input type="number" id="interval6" value="0" min="0">
+      </div>
+      <div class="input-row">
+        <label>±7:</label><input type="number" id="interval7" value="0" min="0">
+      </div>
+    </div>
+    <button id="generateMelodyBtn" class="generate-btn">Generate Melody</button>
+    
+    <h4>Random Rhythm</h4>
+    <p class="note-text">Generates 10 durations. Set duration probabilities:</p>
+    <div class="random-inputs">
+      <div class="input-row">
+        <label>0.25:</label><input type="number" id="duration025" value="0" min="0">
+      </div>
+      <div class="input-row">
+        <label>0.5:</label><input type="number" id="duration05" value="1" min="0">
+      </div>
+      <div class="input-row">
+        <label>0.75:</label><input type="number" id="duration075" value="0" min="0">
+      </div>
+      <div class="input-row">
+        <label>1:</label><input type="number" id="duration1" value="1" min="0">
+      </div>
+      <div class="input-row">
+        <label>1.25:</label><input type="number" id="duration125" value="0" min="0">
+      </div>
+      <div class="input-row">
+        <label>1.5:</label><input type="number" id="duration15" value="1" min="0">
+      </div>
+      <div class="input-row">
+        <label>1.75:</label><input type="number" id="duration175" value="0" min="0">
+      </div>
+      <div class="input-row">
+        <label>2:</label><input type="number" id="duration2" value="0" min="0">
+      </div>
+    </div>
+    <button id="generateRhythmBtn" class="generate-btn">Generate Rhythm</button>
+    
+    <h4>Examples</h4>
     <div id="exampleList" class="example-list">
       <div class="example-item" data-file="examples/打上花火.txt">
         <div class="example-name">打上花火</div>
