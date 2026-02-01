@@ -34,68 +34,68 @@ const instrumentShortcuts = {
 
 // Percussion/Drum note mappings (shortcuts to MIDI)
 const percussionMap = {
-    xx: 26,   // Silence
-    xhq: 27,  // High-Q
-    xsl: 28,  // Slap
-    xsp: 29,  // Scratch Push
-    xspl: 30, // Scratch Pull
-    xst: 31,  // Sticks
-    xsq: 32,  // Square Click
-    xmc: 33,  // Metronome Click
-    xmb: 34,  // Metronome Bell
-    xbd: 35,  // Acoustic Bass Drum
-    xb: 36,   // Bass Drum
-    xss: 37,  // Side Stick
-    xs: 38,   // Acoustic Snare
-    xhcl: 39,  // Hand Clap
-    xse: 40,  // Electric Snare
-    xtlf: 41, // Low Floor Tom
-    xhc: 42, // Closed Hi Hat
-    xthf: 43, // High Floor Tom
-    xhp: 44,  // Pedal Hi-Hat
-    xtl: 45,  // Low Tom
-    xh: 46,   // Open Hi-Hat
-    xtlm: 47, // Low-Mid Tom
-    xthm: 48, // Hi-Mid Tom
-    xc1: 49,  // Crash Cymbal 1
-    xth: 50,  // High Tom
-    xr1: 51,  // Ride Cymbal 1
-    xcc: 52,  // Chinese Cymbal
-    xrb: 53,  // Ride Bell
-    xtb: 54,  // Tambourine
-    xsc: 55,  // Splash Cymbal
-    xcw: 56,  // Cowbell
-    xc2: 57,  // Crash Cymbal 2
-    xvs: 58,  // Vibraslap
-    xr2: 59,  // Ride Cymbal 2
-    xbh: 60,  // Hi Bongo
-    xbl: 61,  // Low Bongo
-    xchm: 62, // Mute Hi Conga
-    xcho: 63, // Open Hi Conga
-    xcl: 64,  // Low Conga
-    xtih: 65, // High Timbale
-    xtil: 66, // Low Timbale
-    xagh: 67, // High Agogo
-    xagl: 68, // Low Agogo
-    xcab: 69, // Cabasa
-    xmar: 70, // Maracas
-    xws: 71,  // Short Whistle
-    xwl: 72,  // Long Whistle
-    xgs: 73,  // Short Guiro
-    xgl: 74,  // Long Guiro
-    xcla: 75, // Claves
-    xwbh: 76, // Hi Wood Block
-    xwbl: 77, // Low Wood Block
-    xcum: 78, // Mute Cuica
-    xcuo: 79, // Open Cuica
-    xtm: 80,  // Mute Triangle
-    xto: 81,  // Open Triangle
-    xsh: 82,  // Shaker
-    xjb: 83,  // Jingle Bell
-    xbt: 84,  // Bell Tree
-    xcast: 85, // Castanets
-    xsm: 86,  // Mute Surdo
-    xso: 87   // Open Surdo
+    x: 26,   // Silence
+    hq: 27,  // High-Q
+    sl: 28,  // Slap
+    sp: 29,  // Scratch Push
+    spl: 30, // Scratch Pull
+    st: 31,  // Sticks
+    sq: 32,  // Square Click
+    mc: 33,  // Metronome Click
+    mb: 34,  // Metronome Bell
+    bd: 35,  // Acoustic Bass Drum
+    b: 36,   // Bass Drum
+    ss: 37,  // Side Stick
+    s: 38,   // Acoustic Snare
+    hcl: 39,  // Hand Clap
+    se: 40,  // Electric Snare
+    tlf: 41, // Low Floor Tom
+    hc: 42, // Closed Hi Hat
+    thf: 43, // High Floor Tom
+    hp: 44,  // Pedal Hi-Hat
+    tl: 45,  // Low Tom
+    h: 46,   // Open Hi-Hat
+    tlm: 47, // Low-Mid Tom
+    thm: 48, // Hi-Mid Tom
+    c1: 49,  // Crash Cymbal 1
+    th: 50,  // High Tom
+    r1: 51,  // Ride Cymbal 1
+    cc: 52,  // Chinese Cymbal
+    rb: 53,  // Ride Bell
+    tb: 54,  // Tambourine
+    sc: 55,  // Splash Cymbal
+    cw: 56,  // Cowbell
+    c2: 57,  // Crash Cymbal 2
+    vs: 58,  // Vibraslap
+    r2: 59,  // Ride Cymbal 2
+    bh: 60,  // Hi Bongo
+    bl: 61,  // Low Bongo
+    chm: 62, // Mute Hi Conga
+    cho: 63, // Open Hi Conga
+    cl: 64,  // Low Conga
+    tih: 65, // High Timbale
+    til: 66, // Low Timbale
+    agh: 67, // High Agogo
+    agl: 68, // Low Agogo
+    cab: 69, // Cabasa
+    mar: 70, // Maracas
+    ws: 71,  // Short Whistle
+    wl: 72,  // Long Whistle
+    gs: 73,  // Short Guiro
+    gl: 74,  // Long Guiro
+    cla: 75, // Claves
+    wbh: 76, // Hi Wood Block
+    wbl: 77, // Low Wood Block
+    cum: 78, // Mute Cuica
+    cuo: 79, // Open Cuica
+    tm: 80,  // Mute Triangle
+    to: 81,  // Open Triangle
+    sh: 82,  // Shaker
+    jb: 83,  // Jingle Bell
+    bt: 84,  // Bell Tree
+    cast: 85, // Castanets
+    sm: 86,  // Mute Surdo
+    so: 87   // Open Surdo
 };
 
 // Full percussion names
