@@ -30,18 +30,18 @@ function hideStatus() {
 function parseNote(noteStr, keyOffset = 0, isPercussion = false) {
     if (!noteStr || noteStr === '.' || noteStr === '') return null;
     
-    const percLower = noteStr.toLowerCase();
-    if (percussionMap[percLower] !== undefined) {
-        return percussionMap[percLower];
+    if (isPercussion) {
+        const percLower = noteStr.toLowerCase();
+        if (percussionMap[percLower] !== undefined) {
+            return percussionMap[percLower];
+        }
     }
-    
+
     const match = noteStr.toLowerCase().match(/^([a-g][sb]?)(\d+)$/);
     if (!match) return null;
     
     const [, note, octave] = match;
     const midiNote = (parseInt(octave) + 1) * 12 + noteMap[note];
-    
-    if (isPercussion) return midiNote;
     
     return midiNote - 60 + keyOffset;
 }
@@ -105,7 +105,7 @@ function parseNotation(text) {
             
             pendingRhythm = null;
             pendingMelody = null;
-        } else if (line.startsWith('- ') && currentSection && currentTrack) {
+        } else if (line.startsWith('- |') && currentSection && currentTrack) {
             const content = line.substring(3).split('|').map(s => s.trim()).filter(s => s);
             
             if (!pendingRhythm) {
@@ -480,12 +480,12 @@ function saveFile() {
 
 function closeAllPanels() {
     document.getElementById('guidePanel').classList.remove('open');
-    document.getElementById('inspirationPanel').classList.remove('open');
+    document.getElementById('examplePanel').classList.remove('open');
 }
 
 function togglePanel(panelId) {
     const panel = document.getElementById(panelId);
-    const otherPanelId = panelId === 'guidePanel' ? 'inspirationPanel' : 'guidePanel';
+    const otherPanelId = panelId === 'guidePanel' ? 'examplePanel' : 'guidePanel';
     const otherPanel = document.getElementById(otherPanelId);
     
     if (panel.classList.contains('open')) {
@@ -511,113 +511,6 @@ async function loadExample(filepath) {
     }
 }
 
-function insertAtCursor(text) {
-    const textarea = document.getElementById('notation');
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = textarea.value.substring(0, start);
-    const after = textarea.value.substring(end);
-    
-    textarea.value = before + text + after;
-    textarea.selectionStart = textarea.selectionEnd = start + text.length;
-    textarea.focus();
-    
-    renderTimeline();
-}
-
-function generateRandomMelody() {
-    // Use only natural notes (C major scale)
-    const noteNames = ['c', 'd', 'e', 'f', 'g', 'a', 'b'];
-    const intervals = [];
-    const weights = [];
-    
-    // Collect probabilities for each interval
-    for (let i = 0; i <= 7; i++) {
-        const weight = parseInt(document.getElementById(`interval${i}`).value) || 0;
-        if (i === 0) {
-            intervals.push(0);
-            weights.push(weight);
-        } else {
-            intervals.push(i);
-            intervals.push(-i);
-            weights.push(weight);
-            weights.push(weight);
-        }
-    }
-    
-    const totalWeight = weights.reduce((a, b) => a + b, 0);
-    if (totalWeight === 0) {
-        showError('Please set at least one interval probability > 0');
-        return;
-    }
-    
-    // Generate melody
-    const melody = [];
-    
-    // Start at random position in octave 4 (absolute positions 28-34)
-    let absolutePosition = 4 * 7 + Math.floor(Math.random() * 7); // 4*7=28 is C4
-    
-    for (let i = 0; i < 10; i++) {
-        // Calculate current note
-        const octave = Math.floor(absolutePosition / 7);
-        const noteIndex = absolutePosition % 7;
-        melody.push(noteNames[noteIndex] + octave);
-        
-        if (i < 9) { // Don't need interval for last note
-            // Weighted random selection for next interval
-            let random = Math.random() * totalWeight;
-            let selectedInterval = 0;
-            
-            for (let j = 0; j < intervals.length; j++) {
-                random -= weights[j];
-                if (random <= 0) {
-                    selectedInterval = intervals[j];
-                    break;
-                }
-            }
-            
-            // Apply interval to absolute position
-            absolutePosition += selectedInterval;
-        }
-    }
-    
-    insertAtCursor(melody.join(' '));
-}
-
-function generateRandomRhythm() {
-    const durations = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
-    const durationIds = ['025', '05', '075', '1', '125', '15', '175', '2'];
-    const weights = [];
-    
-    // Collect probabilities
-    for (const id of durationIds) {
-        const weight = parseInt(document.getElementById(`duration${id}`).value) || 0;
-        weights.push(weight);
-    }
-    
-    const totalWeight = weights.reduce((a, b) => a + b, 0);
-    if (totalWeight === 0) {
-        showError('Please set at least one duration probability > 0');
-        return;
-    }
-    
-    // Generate rhythm
-    const rhythm = [];
-    for (let i = 0; i < 10; i++) {
-        let random = Math.random() * totalWeight;
-        
-        for (let j = 0; j < durations.length; j++) {
-            random -= weights[j];
-            if (random <= 0) {
-                rhythm.push(durations[j]);
-                break;
-            }
-        }
-    }
-    
-    insertAtCursor(rhythm.join(' '));
-}
-
 // Event listeners
 document.getElementById('playBtn').addEventListener('click', play);
 document.getElementById('stopBtn').addEventListener('click', stop);
@@ -627,12 +520,9 @@ document.getElementById('guideBtn').addEventListener('click', () => {
     togglePanel('guidePanel');
 });
 
-document.getElementById('inspirationBtn').addEventListener('click', () => {
-    togglePanel('inspirationPanel');
+document.getElementById('exampleBtn').addEventListener('click', () => {
+    togglePanel('examplePanel');
 });
-
-document.getElementById('generateMelodyBtn').addEventListener('click', generateRandomMelody);
-document.getElementById('generateRhythmBtn').addEventListener('click', generateRandomRhythm);
 
 // NEW: Timeline click handler
 document.getElementById('timeline').addEventListener('click', handleTimelineClick);
@@ -658,11 +548,11 @@ document.addEventListener('keydown', (e) => {
     
     if (modifier && e.key === 'e') {
         e.preventDefault();
-        togglePanel('inspirationPanel');
+        togglePanel('examplePanel');
         return;
     }
     
-    if (modifier && e.key === 'h') {
+    if (modifier && e.key === 'g') {
         e.preventDefault();
         togglePanel('guidePanel');
         return;
