@@ -3,12 +3,12 @@ let panners = {};
 let isPlaying = false;
 let scheduledNotes = [];
 let audioContext = null;
-let playbackStartBeat = 0; // NEW: Track playback start position in beats
-let totalBeats = 0; // NEW: Total beats in composition
-let playbackStartTime = 0; // NEW: When playback started (audioContext time)
-let playbackAnimationId = null; // NEW: Animation frame ID
-let currentTempo = 120; // NEW: Track current tempo for ruler animation
-let endTimeout = null; // NEW: Track the end timeout to clear it properly
+let playbackStartBeat = 0;
+let totalBeats = 0;
+let playbackStartTime = 0;
+let playbackAnimationId = null;
+let currentTempo = 120;
+let endTimeout = null;
 
 function showError(msg) {
     const el = document.getElementById('error');
@@ -61,7 +61,7 @@ function parseNotation(text) {
     let pendingMelody = null;
 
     for (const line of lines) {
-        if (line.match(/^[a-z0-9_]+:/i) && !line.includes('.')) {
+        if (line.match(/^[^\s:.]+:/i) && !line.includes('.')) {
             const [name, ...params] = line.split(/[\s:]+/).filter(p => p);
             const length = parseInt(params[0]) || 32;
             const keyStr = params[1] || 'c4';
@@ -80,7 +80,7 @@ function parseNotation(text) {
             pendingRhythm = null;
             pendingMelody = null;
         } else if (line.startsWith('- ') && line.includes(':') && !currentTrack) {
-            const match = line.match(/- ([a-z0-9_]+):\s*([a-z0-9_]+)(?:\s+([\d.]+))?(?:\s+([\d.]+))?/i);
+            const match = line.match(/- ([^\s:]+):\s*([^\s]+)(?:\s+([\d.]+))?(?:\s+([\d.]+))?/i);
             if (match && currentSection) {
                 const [, trackName, instrumentName, vol, pan] = match;
                 const instrumentNum = instrumentMap[instrumentName.toLowerCase()] ?? parseInt(instrumentName) ?? 0;
@@ -93,7 +93,7 @@ function parseNotation(text) {
                     events: []
                 };
             }
-        } else if (line.match(/^[a-z0-9_]+\.[a-z0-9_]+:/i)) {
+        } else if (line.match(/^[^\s:.]+\.[^\s:.]+:/i)) {
             const [trackPath, offsetStr] = line.split(':').map(s => s.trim());
             const [secName, trkName] = trackPath.split('.');
             currentSection = secName;
@@ -121,7 +121,7 @@ function parseNotation(text) {
                     const isPercussion = track.isPercussion || false;
                     let time = startOffset;
                     let lastEvent = null;
-                    let lastMelody = null; // NEW: Track previous melody
+                    let lastMelody = null;
                     
                     pendingRhythm.forEach((segment, segIdx) => {
                         const rhythms = segment.split(/\s+/).filter(r => r);
@@ -152,7 +152,7 @@ function parseNotation(text) {
                                     };
                                     track.events.push(event);
                                     lastEvent = event;
-                                    lastMelody = melody; // NEW: Store this melody
+                                    lastMelody = melody;
                                 }
                             }
                             time += duration;
@@ -184,13 +184,11 @@ function parseNotation(text) {
     return sections;
 }
 
-// NEW: Render timeline with sections
 function renderTimeline() {
     const notation = document.getElementById('notation').value;
     const sections = parseNotation(notation);
     const timelineSections = document.getElementById('timelineSections');
     
-    // Clear timeline
     timelineSections.innerHTML = '';
     
     if (Object.keys(sections).length === 0) {
@@ -199,10 +197,8 @@ function renderTimeline() {
         return;
     }
     
-    // Calculate total beats
     totalBeats = Object.values(sections).reduce((sum, section) => sum + section.length, 0);
     
-    // Render each section
     let beatOffset = 0;
     Object.entries(sections).forEach(([name, section]) => {
         const sectionDiv = document.createElement('div');
@@ -230,11 +226,9 @@ function renderTimeline() {
         beatOffset += section.length;
     });
     
-    // Update ruler position
     updateRulerPosition();
 }
 
-// NEW: Update ruler position based on playbackStartBeat
 function updateRulerPosition() {
     const ruler = document.getElementById('timelineRuler');
     if (totalBeats === 0) {
@@ -246,7 +240,6 @@ function updateRulerPosition() {
     ruler.style.left = `${percentage}%`;
 }
 
-// NEW: Animate ruler during playback
 function animateRuler() {
     if (!isPlaying || !audioContext) {
         return;
@@ -263,7 +256,6 @@ function animateRuler() {
     playbackAnimationId = requestAnimationFrame(animateRuler);
 }
 
-// NEW: Handle timeline click to set playback position
 function handleTimelineClick(e) {
     const timeline = document.getElementById('timeline');
     const rect = timeline.getBoundingClientRect();
@@ -333,7 +325,7 @@ async function play() {
     isPlaying = true;
 
     const firstSection = Object.values(sections)[0];
-    currentTempo = firstSection.tempo; // Store tempo for animation
+    currentTempo = firstSection.tempo;
 
     const instrumentsToLoad = new Map();
     Object.values(sections).forEach(section => {
@@ -357,7 +349,7 @@ async function play() {
     playbackStartTime = audioContext.currentTime;
     animateRuler();
 
-    // NEW: Calculate beat offset for each section
+    // Calculate beat offset for each section
     const sectionBeatOffsets = {};
     let beatOffset = 0;
     Object.entries(sections).forEach(([name, section]) => {
@@ -383,7 +375,7 @@ async function play() {
 
     const timeShift = -minStartTime;
     
-    // NEW: Convert playbackStartBeat to time offset
+    // Convert playbackStartBeat to time offset
     const startBeatOffset = playbackStartBeat;
     let totalEndBeat = 0;
     
@@ -400,7 +392,6 @@ async function play() {
             track.events.forEach(event => {
                 const eventBeat = sectionBeatStart + event.time;
                 
-                // NEW: Only schedule events at or after the playback start beat
                 if (eventBeat >= startBeatOffset) {
                     const startTimeSec = (eventBeat - startBeatOffset) * secondsPerBeat + timeShift;
                     const duration = event.duration * secondsPerBeat;
@@ -504,7 +495,7 @@ async function loadExample(filepath) {
         }
         const content = await response.text();
         document.getElementById('notation').value = content;
-        renderTimeline(); // NEW: Update timeline when loading example
+        renderTimeline();
         closeAllPanels();
     } catch (error) {
         showError(`Could not load example: ${error.message}`);
@@ -513,7 +504,7 @@ async function loadExample(filepath) {
 
 // Event listeners
 document.getElementById('playBtn').addEventListener('click', play);
-document.getElementById('stopBtn').addEventListener('click', stop);
+document.getElementById('stopBtn').addEventListener('click', () => stop());
 document.getElementById('saveBtn').addEventListener('click', saveFile);
 
 document.getElementById('guideBtn').addEventListener('click', () => {
@@ -524,12 +515,9 @@ document.getElementById('exampleBtn').addEventListener('click', () => {
     togglePanel('examplePanel');
 });
 
-// NEW: Timeline click handler
 document.getElementById('timeline').addEventListener('click', handleTimelineClick);
 
-// NEW: Update timeline when notation changes
 document.getElementById('notation').addEventListener('input', () => {
-    // Debounce timeline rendering
     clearTimeout(window.timelineUpdateTimeout);
     window.timelineUpdateTimeout = setTimeout(() => {
         renderTimeline();
@@ -659,4 +647,4 @@ function populateGuide() {
 
 // Initialize
 populateGuide();
-renderTimeline(); // NEW: Render timeline on page load
+renderTimeline();

@@ -1,4 +1,4 @@
-i1: 32 gb4 98
+i1: 32 gb3 98
 - piano1: apiano 1 .5
 - piano2: apiano .5 .5
 - guitar1: eguitc .5 .8
@@ -7,32 +7,33 @@ i1: 32 gb4 98
 
 i1.piano1: 0
 - | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
-- | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 a5 d5 e5 a4 c5 | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 a5 d5 e5 a4 c5  
+- | d6 e6 g6 c6 d6 e6 g6 c6 | d6 e6 g6 a6 d6 e6 a5 c6 | d6 e6 g6 c6 d6 e6 g6 c6 | d6 e6 g6 a6 d6 e6 a5 c6 |
 i1.piano2: 0
 - |   2.5   1.5 |   2.5   1.5 |   2.5   1.5 |   2.5   1.5 | 
-- | f3-c4 g3-d4 | a3-e4 c4-g4 | f3-c4 g3-d4 | a3-e4 c3-g3 |
+- | f4-c5 g4-d5 | a4-e5 c5-g5 | f4-c5 g4-d5 | a4-e5 c5-g5 |
 i1.guitar1: 0
 - | 4 | 4 | 4 | 2.5 1.5 |
-- | . | . | . |   .  g4 |
+- | . | . | . |   .  g5 |
 
 i1.piano1: 16
 - | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
-- | d4 e4 g4 c4 d4 e4 g4 c4 | d4 e4 g4 c4 d4 e4 g4 c4 | d4 e4 g4 c4 d4 e4 g4 c4 | d4 e4 g4 c4 d4 e4 g4 e4 |  
+- | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 c5 d5 e5 g5 e5 |  
 i1.piano2: 16
 - |   2.5   1.5 |   2.5   1.5 |   2.5   1.5 |   2.5    1.5 | 
-- | f2-c3 g2-d3 | a2-e3 c2-g2 | f2-c3 g2-d3 | a2-e3  c3-g3 |
+- | f3-c4 g3-d4 | a3-e4 c3-g3 | f3-c4 g3-d4 | a3-e4  c4-g4 |
 i1.guitar2: 16
 - | 4 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
-- | . | d4 d4 d4 d4 d4 d4 d4 d4 | e4 e4 e4 e4 e4 e4 e4 e4 | d4 d4 d4 d4 d4 d4 d4 d4 |
+- | . | d5 d5 d5 d5 d5 d5 d5 d5 | e5 e5 e5 e5 e5 e5 e5 e5 | d5 d5 d5 d5 d5 d5 d5 d5 |
 i1.pad: 16
 - | 2.5 1.5 |  4 | 2.5 1.5 |  4 |
-- |  c3  b2 | a2 |  c3  b2 | a2 |
+- |  c4  b3 | a3 |  c4  b3 | a3 |
 
-a1: 32 gb4 98
+
+a1: 32 gb3 98
 - vocal: violin 1 .5
-- bass: abass .2 .5
 - drum1: perc .2 .5
 - clap: perc .1 .5
+- bass: abass .2 .5
 - guitar1: eguitc .5 .5
 - guitar2: eguitc .3 .2
 - piano1: apiano .5 .5
@@ -41,67 +42,68 @@ a1: 32 gb4 98
 
 a1.vocal: -4 
 - | 3 .5 .5 |  1 .5  1 .5 .5 .5 | .5 .5 .5  1 .5 .5 .5 |    1     1 .5   1 .5 | 1 3 |
-- | . e3 g3 | a3 c4 d4 b3 g3 f3 | e3 g3 b3 c4  . c4 b3 |   a3    c4 b3  g3 g3 | - . |
+- | . e4 g4 | a4 c5 d5 b4 g4 f4 | e4 g4 b4 c5  . c5 b4 |   a4    c5 b4  g4 g4 | - . |
 - | .  a no | hi mi wa ta si ta | na gi sa wo  .  i ma | mo-o  mo-i da sun da | - . |
+a1.drum1: 0
+- | 1 1 .5 .5 1 | 1 1 .5 .75 .75 | 1 1 .5 .5 1 | 1 1 .5 .75 .75 |
+- | b .  .  b . | b .  .   b   b | b .  .  b . | b .  .   b   b |
+a1.clap: 0
+- | 1   1 2 | 1   1 2 | 1   1 2 | 1   1 2 | 
+- | . hcl . | . hcl . | . hcl . | . hcl . |
 a1.bass: 0
 - | 2.5 1.5 | 2.5 1.5 | 2.5 1.5 | 2.5 1.5 |
-- |  f2  g2 |  a2  c2 |  f2  g2 |  a2  c2 | 
-a1.drum1: 0
-- |  1 1 .5 .5 1 |  1 1 .5 .75 .75 |  1 1 .5 .5 1 |  1 1 .5 .75 .75 |
-- | xb .  . xb . | xb .  .  xb  xb | xb .  . xb . | xb .  .  xb  xb |
-a1.clap: 0
-- | 1    1 2 | 1    1 2 | 1    1 2 | 1    1 2 | 
-- | . xhcl . | . xhcl . | . xhcl . | . xhcl . |
+- |  f3  g3 |  a3  c3 |  f3  g3 |  a3  c3 | 
 a1.guitar1: -4
 - | 3  1 | 1  1  1  1 | 1  1  1  1 | 1  1  1  1 | 1  1  1  1 |
-- | . g3 | . g3 a3 g3 | - g3 a3 g3 | - g3 a3 g3 | - g3 a3  . |
+- | . g4 | . g4 a4 g4 | - g4 a4 g4 | - g4 a4 g4 | - g4 a4  . |
 a1.piano1: 0
 - | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
-- | d4 e4 g4 c4 d4 e4 g4 c4 | d4 e4 g4 c4 d4 e4 g4 e4 | d4 e4 g4 c4 d4 e4 g4 c4 | d4 e4 g4 c4 d4 e4 g4 e4 |  
+- | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 c5 d5 e5 g5 e5 | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 c5 d5 e5 g5 e5 |  
 a1.piano2: 0
 - |   2.5   1.5 |   2.5   1.5 |   2.5   1.5 |   2.5   1.5 | 
-- | f2-c3 g2-d3 | a2-e3 c2-g2 | f2-c3 g2-d3 | a2-e3 c3-g3 |
+- | f3-c4 g3-d4 | a3-e4 c3-g3 | f3-c4 g3-d4 | a3-e4 c4-g4 |
 a1.pad: 0
 - | 2.5 1.5 |  4 | 2.5 1.5 |  4 |
-- |  c3  b2 | a2 |  c3  b2 | a2 |
+- |  c4  b3 | a3 |  c4  b3 | a3 |
 
 a1.vocal: 12
 - | 3 .5 .5 |  1  .5  1 .5 .5 .5 | .5 .5 .5  1 .5 .5 .5 |    1  1 .5 .5 .5 .5 | 1 3 |
-- | . e3 g3 | a3  c4 d4 b3 g3 f3 | e3 g3 b3 c4  . c4 b3 |   a3 c4 b3 g3 g3 a3 | - . |
+- | . e4 g4 | a4  c5 d5 b4 g4 f4 | e4 g4 b4 c5  . c5 b4 |   a4 c5 b4 g4 g4 a4 | - . |
 - | . su na | no-u e ni ki za  n | da ko to ba  . ki mi | no-u si ro su ga ta | - . |
+a1.drum1: 16
+- | 1 1 .5 .5 1 | 1 1 .5 .75 .75 | 1 1 .5 .5 1 | 1 1 .5 .75 .75 |
+- | b .  .  b . | b .  .   b   b | b .  .  b . | b .  .   b   b |
+a1.clap: 16
+- | 1   1 2 | 1   1 2 | 1   1 2 | 1   1 2 | 
+- | . hcl . | . hcl . | . hcl . | . hcl . |
 a1.bass: 16
 - | 2.5 1.5 | 2.5 1.5 | 2.5 1.5 | 2.5 1.5 |
-- |  f2  g2 |  a2  c2 |  f2  g2 |  a2  c2 | 
-a1.drum1: 16
-- |  1 1 .5 .5 1 |  1 1 .5 .75 .75 |  1 1 .5 .5 1 |  1 1 .5 .75 .75 |
-- | xb .  . xb . | xb .  .  xb  xb | xb .  . xb . | xb .  .  xb  xb |
-a1.clap: 16
-- | 1    1 2 | 1    1 2 | 1    1 2 | 1    1 2 | 
-- | . xhcl . | . xhcl . | . xhcl . | . xhcl . |
+- |  f3  g3 |  a3  c3 |  f3  g3 |  a3  c3 | 
 a1.guitar1: 12
 - | 3  1 | 1  1  1  1 | 1  1  1  1 | 1  1  1  1 | 1  1  1 1 |
-- | . g3 | - g3 a3 g3 | - g3 a3 g3 | - g3 a3 g3 | - g3 a3 . |
+- | . g4 | - g4 a4 g4 | - g4 a4 g4 | - g4 a4 g4 | - g4 a4 . |
 a1.guitar2: 16
 - | 4 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | 4 |
-- | . | d4 d4 d4 d4 d4 d4 d4 d4 | e4 e4 e4 e4 e4 e4 e4 e4 | . |
+- | . | d5 d5 d5 d5 d5 d5 d5 d5 | e5 e5 e5 e5 e5 e5 e5 e5 | . |
 a1.piano1: 16
 - | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
-- | d4 e4 g4 c4 d4 e4 g4 c4 | d4 e4 g4 c4 d4 e4 g4 e4 | d4 e4 g4 c4 d4 e4 g4 c4 | d4 e4 g4 c4 d4 e4 g4 e4 |  
+- | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 c5 d5 e5 g5 e5 | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 c5 d5 e5 g5 e5 |  
 a1.piano2: 16
 - |   2.5   1.5 |   2.5   1.5 |   2.5   1.5 |   2.5   1.5 | 
-- | f2-c3 g2-d3 | a2-e3 c2-g2 | f2-c3 g2-d3 | a2-e3 c3-g3 |
+- | f3-c4 g3-d4 | a3-e4 c3-g3 | f3-c4 g3-d4 | a3-e4 c4-g4 |
 a1.pad: 16
 - | 2.5 1.5 |  4 | 2.5 1.5 |  4 |
-- |  c3  b2 | a2 |  c3  b2 | a2 |
+- |  c4  b3 | a3 |  c4  b3 | a3 |
 
-b1: 32 gb4 98
-- vocal1: violin 1 .5
-- vocal2: violin .5 .5
-- bass1: abass .2 .5
-- bass2: ebassp .5 .5
+
+b1: 32 gb3 98
+- vocal1a: violin 1 .5
+- vocal1b: violin .5 .5
 - drum1: perc .2 .5
 - drum2: perc .05 .5
 - clap: perc .1 .5
+- bass1: abass .2 .5
+- bass2: ebassp .5 .5
 - guitar1: eguitc .5 .5
 - guitar2: eguitc .3 .2
 - synth: sstrings1 .5 .5
@@ -109,104 +111,302 @@ b1: 32 gb4 98
 - piano2: apiano .5 .5
 - pad: epiano .5 .5
 
-b1.vocal1: -4
+b1.vocal1a: -4
 - | 3 .5 .5 |  1.5 .5 .5 .5  1 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | 1 3 |
-- | . a3 b3 |   c4 b3 a3 b3 c4 |  . b3 a3 b3 c4 b3 g3 a3 | g3 c3 c3 a3 g3 c3 d3 e3 | - . |
+- | . a4 b4 |   c5 b4 a4 b4 c5 |  . b4 a4 b4 c5 b4 g4 a4 | g4 c4 c4 a4 g4 c4 d4 e4 | - . |
 - | . yo ri | ka-e su na mi ga |  .  a si mo to wo yo gi | ri na ni ka wo sa ra  u | - . |
-b1.vocal2: -4
+b1.vocal1b: -4
 - | 3 .5 .5 |  1.5 .5 .5 .5  1 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 3.5 | 4 |
-- | . c4 d4 |   e4 d4 c4 d4 e4 |  . d4 c4 d4 e4 d4 c4 d4 | c4   . | . |
+- | . c5 d5 |   e5 d5 c5 d5 e5 |  . d5 c5 d5 e5 d5 c5 d5 | c5   . | . |
 - | . yo ri | ka-e su na mi ga |  .  a si mo to wo yo gi | ri   . | . |
+b1.drum1: 0
+- | 1 1 .5 .5 1 | 1 1 .5 .75 .75 | 1 1 .5 .5 1 | 1 1 .5 .75 .75 |
+- | b .  .  b . | b .  .   b   b | b .  .  b . | b .  .   b   b |
+b1.drum2: 0
+- | .5  .5  .5 .125 .125 .125 .125  .5 .25 .25  .5  .5 | .5  .5  .5 .125 .125 .125 .125  .5  .5  .25 .25 .125 .125 .125 .125 |
+- | hc  hc  hc   hc   hc   hc   hc  hc  hc  hc  hc  hc | hc  hc  hc   hc   hc   hc   hc  hc  hc   hc  hc   hc   hc   hc   hc |
+b1.drum2: 8
+- | .5  .5  .5 .125 .125 .125 .125 .25 .25 .25 .25   1 | .5  .5  .5 .125 .125 .125 .125  .5  .5   1 |
+- | hc  hc  hc   hc   hc   hc   hc  hc  hc  hc  hc  hc | hc  hc  hc   hc   hc   hc   hc  hc  hc  hc | 
+b1.clap: 0
+- | 1   1 2 | 1   1 2 | 1   1 2 | 1   1 2 | 
+- | . hcl . | . hcl . | . hcl . | . hcl . |
 b1.bass1: 0
 - | 2.5 1.5 | 2.5 1.5 | 2.5 1.5 | 2.5 1.5 |
-- |  f2  g2 |  a2  c2 |  f2  g2 |  a2  c2 | 
+- |  f3  g3 |  a3  c3 |  f3  g3 |  a3  c3 | 
 b1.bass2: 0
 - | 2.5 1.5 | 2.5 1.5 | 2.5 1.5 | 2.5 1.5 |
-- |  f1  g1 |  a1  c1 |  f1  g1 |  a1  c2 | 
-b1.drum1: 0
-- |  1 1 .5 .5 1 |  1 1 .5 .75 .75 |  1 1 .5 .5 1 |  1 1 .5 .75 .75 |
-- | xb .  . xb . | xb .  .  xb  xb | xb .  . xb . | xb .  .  xb  xb |
-b1.drum2: 0
-- |  .5  .5  .5 .125 .125 .125 .125  .5 .25 .25  .5  .5 |  .5  .5  .5 .125 .125 .125 .125  .5  .5  .25 .25 .125 .125 .125 .125 |
-- | xhc xhc xhc  xhc  xhc  xhc  xhc xhc xhc xhc xhc xhc | xhc xhc xhc  xhc  xhc  xhc  xhc xhc xhc  xhc xhc  xhc  xhc  xhc  xhc |
-b1.drum2: 8
-- |  .5  .5  .5 .125 .125 .125 .125 .25 .25 .25 .25   1 |  .5  .5  .5 .125 .125 .125 .125  .5  .5   1 |
-- | xhc xhc xhc  xhc  xhc  xhc  xhc xhc xhc xhc xhc xhc | xhc xhc xhc  xhc  xhc  xhc  xhc xhc xhc xhc | 
-b1.clap: 0
-- | 1    1 2 | 1    1 2 | 1    1 2 | 1    1 2 | 
-- | . xhcl . | . xhcl . | . xhcl . | . xhcl . |
+- |  f2  g2 |  a2  c2 |  f2  g2 |  a2  c3 | 
 b1.guitar1: -4
 - | 3  1 | 1  1  1  1 | 1  1  1  1 | 1  1  1  1 | 1  1  1 1 |
-- | . g3 | - g3 a3 g3 | - g3 a3 g3 | - g3 a3 g3 | - g3 a3 . |
+- | . g4 | - g4 a4 g4 | - g4 a4 g4 | - g4 a4 g4 | - g4 a4 . |
 b1.guitar2: 0
 - | 4 | 4 | 4 | .5 .5 .5 .5 .5 .5 .5 .5 |
-- | . | . | . | d4 d4 d4 d4 d4 d4 d4 d4 |
+- | . | . | . | d5 d5 d5 d5 d5 d5 d5 d5 |
 b1.synth: 0
-- | 4 | 4 | 4 | 2.5 .25 .5 .25 .5 |
-- | . | . | . |   .  c3-c4 . c3-c4 . |
+- | 4 | 4 | 4 | 2.5    .25 .5 .25 .5 |
+- | . | . | . |   .  c4-c5 . c4-c5 . |
 b1.piano1: 0
 - | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
-- | d4 e4 g4 c4 d4 e4 g4 c4 | d4 e4 g4 c4 d4 e4 g4 e4 | d4 e4 g4 c4 d4 e4 g4 c4 | d4 e4 g4 c4 d4 e4 g4 e4 |  
+- | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 c5 d5 e5 g5 e5 | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 c5 d5 e5 g5 e5 |  
 b1.piano2: 0
 - |   2.5   1.5 |   2.5   1.5 |   2.5   1.5 |   2.5   1.5 | 
-- | f2-c3 g2-d3 | a2-e3 c2-g2 | f2-c3 g2-d3 | a2-e3 c3-g3 |
+- | f3-c4 g3-d4 | a3-e4 c3-g3 | f3-c4 g3-d4 | a3-e4 c4-g4 |
 b1.pad: 0
 - | 2.5 1.5 |  4 | 2.5 1.5 |  4 |
-- |  c3  b2 | a2 |  c3  b2 | a2 |
+- |  c4  b3 | a3 |  c4  b3 | a3 |
 
-b1.vocal1: 12
+b1.vocal1a: 12
 - | 3 .5 .5 | 1.5 .5 .5 .5  1 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5  1 | 4 |
-- | . a3 b3 |  c4 b3 a3 b3 c4 |  . b3 a3 b3 c4 d4 e4 f4 |  - c4 c4 e4 d4 c4 c4 | . |
+- | . a4 b4 |  c5 b4 a4 b4 c5 |  . b4 a4 b4 c5 d5 e5 f5 |  - c5 c5 e5 d5 c5 c5 | . |
 - | . yu  u |  na gi no na ka |  . hi gu re da ke ga to |  - ri su gi te yu ku | . |
-b1.vocal2: 12
+b1.vocal1b: 12
 - | 3 .5 .5 | 1.5 .5 .5 .5  1 | 4 | 4 | 4 |
-- | . c4 d4 |  e4 d4 c4 d4 e4 | . | . | . |
+- | . c5 d5 |  e5 d5 c5 d5 e5 | . | . | . |
 - | . yu  u |  na gi no na ka | . | . | . |
+b1.drum1: 16
+- | 1 1 .5 .5 1 | 1 1 .5 .75 .75 | 4 | 4 |
+- | b .  .  b . | b .  .   b   b | . | . |
+b1.drum2: 16
+- | .5 .5 .5 .125 .125 .125 .125   .25 .25   .25   .25 .25 .25 .5 |
+- | hc hc hc   hc   hc   hc   hc hc-ss  ss hc-ss hc-ss  hc  ss hc |
+b1.drum2: 20
+- | .5 .5 .5 .125 .125 .125 .125   .25 .25   .25   .25 .25  .125 .125 .125 .125 | 4 | 4 |
+- | hc hc hc   hc   hc   hc   hc hc-ss  ss hc-ss hc-ss  hc hc-ss   hc   hc   hc | . | . |
+b1.clap: 16
+- | 1   1 2 | 1   1 2 | 4 | 4 | 
+- | . hcl . | . hcl . | . | . |
 b1.bass1: 16
 - | 2.5 1.5 | 2.5 1.5 |  4 |  3 1 |
-- |  f2  g2 |  a2  c2 | f2 | c1 . | 
+- |  f3  g3 |  a3  c3 | f3 | c2 . | 
 b1.bass2: 16
 - | 2.5 1.5 | 2.5 1.5 | 4 |  3 1 |
-- |  f1  g1 |  a1  c1 | . | c1 . | 
-b1.drum1: 16
-- |  1 1 .5 .5 1 |  1 1 .5 .75 .75 | 4 | 4 |
-- | xb .  . xb . | xb .  .  xb  xb | . | . |
-b1.drum2: 16
-- |  .5  .5  .5 .125 .125 .125 .125      .25 .25     .25     .25 .25 .25  .5 |  .5  .5  .5 .125 .125 .125 .125     .25 .25     .25     .25 .25    .125 .125 .125 .125 | 4 | 4 |
-- | xhc xhc xhc  xhc  xhc  xhc  xhc  xhc-xss xss xhc-xss xhc-xss xhc xss xhc | xhc xhc xhc  xhc  xhc  xhc  xhc xhc-xss xss xhc-xss xhc-xss xhc xhc-xss  xhc  xhc  xhc | . | . |
-b1.clap: 16
-- | 1    1 2 | 1    1 2 | 4 | 4 | 
-- | . xhcl . | . xhcl . | . | . |
+- |  f2  g2 |  a2  c2 | . | c2 . | 
 b1.guitar1: 12
 - | 3  1 | 1  1  1  1 | 1  1  1  1 | 1  1  1  1 | 2 2 |
-- | . g3 | - g3 a3 g3 | - g3 a3 g3 | - g3 a3 c3 | - . |
+- | . g4 | - g4 a4 g4 | - g4 a4 g4 | - g4 a4 c4 | - . |
 b1.guitar2: 16
 - | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | 4 | 4 |
-- | d4 d4 d4 d4 d4 d4 e4 e4 | f4 f4 f4 f4 f4 f4 f4 f4 | . | . |
+- | d5 d5 d5 d5 d5 d5 e5 e5 | f5 f5 f5 f5 f5 f5 f5 f5 | . | . |
 b1.synth: 16
 - |   .25 .5  .25 .5 .5 .5   .25 .5   .25 .5 |   .25 .5  .25 .5 .5 .5   .25 .5   .25 .5 | 4 | 4 |
-- | c3-c4 . c3-c4  .  .  . c3-c4  . c3-c4  . | c3-c4 . c3-c4  .  .  . c3-c4  .     .  . | . | . |
+- | c4-c5 . c4-c5  .  .  . c4-c5  . c4-c5  . | c4-c5 . c4-c5  .  .  . c4-c5  .     .  . | . | . |
 b1.piano1: 16
 - | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | 4 | 4 |
-- | d4 e4 g4 c4 d4 e4 g4 c4 | d4 e4 g4 c4 d4 e4 g4 e4 | . | . |  
+- | d5 e5 g5 c5 d5 e5 g5 c5 | d5 e5 g5 c5 d5 e5 g5 e5 | . | . |  
 b1.piano2: 16
 - |   2.5   1.5 |   2.5   1.5 | 4 | 4 | 
-- | f2-c3 g2-d3 | a2-e3 c2-g2 | . | . |
+- | f3-c4 g3-d4 | a3-e4 c3-g3 | . | . |
 b1.pad: 16
 - | 2.5 1.5 |  4 | 4 | 4 |
-- |  c3  b2 | a2 | . | . |
+- |  c4  b3 | a3 | . | . |
 
-c1: 32 gb4 98
-- vocal1: violin 1 .5
-- vocal2: violin .5 .5
-- vocal3: violin .7 .5
-- vocal4: violin .5 .5
+
+c1: 32 gb3 98
+- vocal1a: violin 1 .5
+- vocal1b: violin .2 .5
+- vocal2a: violin .7 .5
+- vocal2b: violin .2 .5
+- drum1: perc .2 .5
+- drum2: perc .1 .5
+- drum3: perc .1 .5
 - bass1: abass .2 .5
 - bass2: ebassp .5 .5
+- guitar1: dguitar .1 .5
+- guitar2: eguitc .1 .2
+- string1: violin .5 .5
+- string2: viola .5 .5
+- string3: cello .7 .5
+- string4: contra .7 .5
 
-c1.vocal1: -4
-- | 3 .5 .25 .25 | 
-- | . e4  g4  e4 |
-c1.vocal3: -4
-- | 3 .5 .25 .25 | 
-- | . e3  g3  e3 |
+c1.vocal1a: -4
+- | 3 .5 .25 .25 | .5 .5 .25 .5 .75 .5 .5 .25 .25 | .5 .5 .25 .5 .75 1.5 |
+- | . e5  g5  e5 | d5 c5  a4 c5  d5  . e5  g5  e5 | d5 c5  g4 c5  c5   . |
+- | . pa  to  hi | ka te  sa  i  ta  . ha  na  bi | wo mi  te  e  ta   . |
+c1.vocal1b: -4
+- | 4 | .5 .5 .25 .5 .75 1.5| .5 .5 .25 .5 .75 1.5 |
+- | . | f5 e5  d5 e5  f5  . | f5 e5  c5 e5  e5   . |
+- | . | ka te  sa  i  ta  . | wo mi  te  e  ta   . |
+c1.vocal2a: -4
+- | 3 .5 .25 .25 | .5 .5 .25 .5 .75 .5 .5 .25 .25 | .5 .5 .25 .5 .75 1.5 |
+- | . e4  g4  e4 | d4 c4  a3 c4  d4  . e4  g4  e4 | d4 c4  g3 c4  c4   . |
+- | . pa  to  hi | ka te  sa  i  ta  . ha  na  bi | wo mi  te  e  ta   . |
+c1.vocal2b: -4
+- | 4 | .5 .5 .25 .5 .75 1.5| .5 .5 .25 .5 .75 1.5 |
+- | . | f4 e4  d4 e4  f4  . | f4 e4  c4 e4  e4   . |
+- | . | ka te  sa  i  ta  . | wo mi  te  e  ta   . |
+c1.drum1: 0
+- | 1 .5 .5 .5 .5 .25 .75 | 1 .5 .5 .5 .5 .25 .75 |
+- | b  .  b  .  b   .   b | b  .  b  .  b   .   b |
+c1.drum2: 0
+- | 1 .75 .25 1 1 | 1 .75 .25 1 1 |
+- | .   s   s . s | .   s   s . s |
+c1.drum3: 0
+- |  1 1 1 1 | 1 1 1 1 |
+- | c1 h h h | h h h h |
+c1.bass1: 0
+- | 2.5 .75 .75 | 2.5 .5  1 |
+- |  f3  g3  g3 |  a3 e3 e3 |
+c1.bass2: 0
+- | 2.5 1.5 | 2.5 1.5 |
+- |  f2  g2 |  a2  e2 |
+c1.guitar1: 0
+- |              1 .75 .5            .25 .75 .5 .25 |              1 .75 .5            .25 .75 .5 .25 |
+- | f3-c4-f4-a4-c5   =  = g3-d4-g4-b4-d5   =  =   = | a3-e4-a4-c5-e5   =  = e3-b3-e4-g4-b4   =  =   = |
+c1.guitar2: 0
+- | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
+- | g4 e5 c5 g5 g4 e5 c5 g5 | g4 e5 c5 g5 g4 e5 c5 g5 |
+c1.string1: 0
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | c6 . b5   . b5   . | c6 . e6 e6 . |
+c1.string2: 0
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | c5 . b4   . b4   . | c5 . e5 e5 . |
+c1.string3: 0
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | f4 . g4   . g4   . | a4 . e4 e4 . |
+c1.string4: 0
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | f3 . g3   . g3   . | a3 . e3 e3 . |
+
+c1.vocal1a: 4
+- | 3 .5 .25 .25 | .5 .5 .25 .5 .75  .5 .25 .25 .5 | 1.5 2.5 |
+- | . e5  g5  e5 | d5  .  e5 g5  g5  a5  g5  f5 e5 |  -    . |
+- | . ki  to  ma | da  .   o wa  ra nai  na  tu ga |  -    . |
+c1.vocal1b: 4
+- | 4 | 1 .25 .5 .75  .5 .25 .25 .5 | 1.5 2.5 |
+- | . | .  a5 b5  b5  c6  b5  a5 g5 |  -    . |
+- | . | .   o wa  ra nai  na  tu ga |  -    . |
+c1.vocal2a: 4
+- | 3 .5 .25 .25 | .5 .5 .25 .5 .75  .5 .25 .25 .5 | 1.5 2.5 |
+- | . e4  g4  e4 | d4  .  e4 g4  g4  a4  g4  f4 e4 |  -    . |
+- | . ki  to  ma | da  .   o wa  ra nai  na  tu ga |  -    . |
+c1.vocal2b: 4
+- | 4 | 1 .25 .5 .75  .5 .25 .25 .5 | 1.5 2.5 |
+- | . | .  a4 b4  b4  c5  b4  a4 g4 |  -    . |
+- | . | .   o wa  ra nai  na  tu ga |  -    . |
+c1.drum1: 8
+- | 1 .5 .5 .5 .5 .25 .75 | 1 .5 .5 .5 .5 .25 .75 |
+- | b  .  b  .  b   .   b | b  .  b  .  b   .   b |
+c1.drum2: 8
+- | 1 .75 .25 1 1 | 1 .75 .25 1 1 |
+- | .   s   s . s | .   s   s . s |
+c1.drum3: 8
+- | 1 1 1 1 | 1 1 1 1 |
+- | h h h h | h h h h | 
+c1.bass1: 8
+- | 2.5 .75 .75 | 2.5 .5  1 |
+- |  f3  g3  g3 |  a3 c3 c3 |
+c1.bass2: 8
+- | 2.5 1.5 | 2.5 1.5 |
+- |  f2  g2 |  a2  c2 |
+c1.guitar1: 8
+- |              1 .75 .5            .25 .75 .5 .25 |              1 .75 .5               .25 .75 .5 .25 |
+- | f3-c4-f4-a4-c5   =  = g3-d4-g4-b4-d5   =  =   = | a3-e4-a4-c5-e5   =  = c3-g3-c4-e4-g4-c5   =  =   = |
+c1.guitar2: 8
+- | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
+- | g4 e5 c5 g5 g4 e5 c5 g5 | g4 e5 c5 g5 g4 e5 c5 g5 |
+c1.string1: 8
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | c6 . b5   . b5   . | c6 . e6 e6 . |
+c1.string2: 8
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | c5 . b4   . b4   . | c5 . e5 e5 . |
+c1.string3: 8
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | f4 . g4   . g4   . | a4 . c4 c4 . |
+c1.string4: 8
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | f3 . g3   . g3   . | a3 . c3 c3 . |
+
+c1.vocal1a: 12
+- | 3 .5 .25 .25 | .5 .5 .25 .5 .75 .5 .5 .25 .25 | .5 .5 .25 .5 .75 1.5 |
+- | . e5  g5  e5 | d5 c5  a4 c5  d5  . e5  g5  e5 | d5 c5  g4 c5  c5   . |
+- | . ai  ma   i | na ko  ko ro  wo  . to  ka  si | te tu  na  i  da   . |
+c1.vocal1b: 12
+- | 4 | .5 .5 .25 .5 .75 1.5| .5 .5 .25 .5 .75 1.5 |
+- | . | f5 e5  d5 e5  f5  . | f5 e5  c5 e5  e5   . |
+- | . | ka te  sa  i  ta  . | wo mi  te  e  ta   . |
+c1.vocal2a: 12
+- | 3 .5 .25 .25 | .5 .5 .25 .5 .75 .5 .5 .25 .25 | .5 .5 .25 .5 .75 1.5 |
+- | . e4  g4  e4 | d4 c4  a3 c4  d4  . e4  g4  e4 | d4 c4  g3 c4  c4   . |
+- | . ai  ma   i | na ko  ko ro  wo  . to  ka  si | te tu  na  i  da   . |
+c1.vocal2b: 12
+- | 4 | .5 .5 .25 .5 .75 1.5| .5 .5 .25 .5 .75 1.5 |
+- | . | f4 e4  d4 e4  f4  . | f4 e4  c4 e4  e4   . |
+- | . | ka te  sa  i  ta  . | wo mi  te  e  ta   . |
+c1.drum1: 16
+- | 1 .5 .5 .5 .5 .25 .75 | 1 .5 .5 .5 .5 .25 .75 |
+- | b  .  b  .  b   .   b | b  .  b  .  b   .   b |
+c1.drum2: 16
+- | 1 .75 .25 1 1 | 1 .75 .25 1 1 |
+- | .   s   s . s | .   s   s . s |
+c1.drum3: 16
+- |  1 1 1 1 | 1 1 1 1 |
+- | c1 h h h | h h h h | 
+c1.bass1: 16
+- | 2.5 .75 .75 | 2.5 .5  1 |
+- |  f3  g3  g3 |  a3 e3 e3 |
+c1.bass2: 16
+- | 2.5 1.5 | 2.5 1.5 |
+- |  f2  g2 |  a2  e2 |
+c1.guitar1: 16
+- |              1 .75 .5            .25 .75 .5 .25 |              1 .75 .5            .25 .75 .5 .25 |
+- | f3-c4-f4-a4-c5   =  = g3-d4-g4-b4-d5   =  =   = | a3-e4-a4-c5-e5   =  = e3-b3-e4-g4-b4   =  =   = |
+c1.guitar2: 16
+- | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
+- | g4 e5 c5 g5 g4 e5 c5 g5 | g4 e5 c5 g5 g4 e5 c5 g5 |
+c1.string1: 16
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | c6 . b5   . b5   . | c6 . e6 e6 . |
+c1.string2: 16
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | c5 . b4   . b4   . | c5 . e5 e5 . |
+c1.string3: 16
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | f4 . g4   . g4   . | a4 . e4 e4 . |
+c1.string4: 16
+- | .5 2 .5 .25 .5 .25 | .5 2 .5 .5 .5 |
+- | f3 . g3   . g3   . | a3 . e3 e3 . |
+
+c1.vocal1a: 20
+- | 3 .25 .25 .25 .25 | .75 .25 .75 .25 .5 .5 .5 .5 | .5 2.5 1 | 
+- | .  c5  b4  a4  b4 |  a4  a4  d5  d5 b4 a4 b4 b4 |  -  c5 . |
+- | .  ko  no  yo  ru |  ga  tu  du   i te ho si ka |  -  ta . |
+c1.vocal2a: 20
+- | 3 .25 .25 .25 .25 | .75 .25 .75 .25 .5 .5 .5 .5 | .5 2.5 1 | 
+- | .  c4  b3  a3  b3 |  a3  a3  d4  d4 b3 a3 b3 b3 |  -  c4 . |
+- | .  ko  no  yo  ru |  ga  tu  du   i te ho si ka |  -  ta . |
+c1.drum1: 24
+- | 1 .5 .5 .5 .5 .25 .75 | 1 1 .75 .25 .25 .75 |
+- | b  .  b  .  b   .   b | b .   .   b   .   b |
+c1.drum2: 24
+- | 1 .75 .25 1 .75 .25 | 1 .75 .25 .25 .25 .25 .25 1 |
+- | .   s   s .   s   s | .  s   s   th  thm  tlm tl s |
+c1.drum3: 24
+- |  1 1 .5 .75 .75 |  1  3 |
+- | c1 h  h  c1  c2 | c1 c2 |
+c1.bass1: 24
+- | 2.5 .75 .75 |  1  1  2 |
+- |  f3  g3  g3 | f3 g3 a3 |
+c1.bass2: 24
+- | 2.5 1.5 |  1  1  2 |
+- |  f2  g2 | f2 g2 a2 |
+c1.guitar1: 24
+- |              1 .75 .5            .25 .75 .5 .25 |              1              1                 2 |
+- | f3-c4-f4-a4-c5   =  = g3-d4-g4-b4-d5   =  =   = | f3-c4-f4-a4-c5 g3-d4-g4-b4-d5 c3-g3-c4-e4-g4-c5 |
+c1.guitar2: 24
+- | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5  1 |
+- | g4 e5 c5 g5 g4 e5 c5 g5 | g4 e5 c5 g5 g4 e5 c5 |
+c1.string1: 24
+- | .5 2 .5 .25 .5 .25 | .5 .5 .5 .5 .5 1.5 |
+- | c6 . b5   . b5   . | c6  . d6  . c6   . |
+c1.string2: 24
+- | .5 2 .5 .25 .5 .25 | .5 .5 .5 .5 .5 1.5 |
+- | c5 . b4   . b4   . | c5  . d5  . c5   . |
+c1.string3: 24
+- | .5 2 .5 .25 .5 .25 | .5 .5 .5 .5 .5 1.5 |
+- | f4 . g4   . g4   . | f4  . g4  . a4   . |
+c1.string4: 24
+- | .5 2 .5 .25 .5 .25 | .5 .5 .5 .5 .5 1.5 |
+- | f3 . g3   . g3   . | f3  . g3  . a3   . |
