@@ -204,18 +204,18 @@ b1.pad: 16
 
 c1: 32 gb3 98
 - vocal1a: violin 1 .5
-- vocal1b: violin .2 .5
-- vocal2a: violin .7 .5
-- vocal2b: violin .2 .5
+- vocal1b: violin .5 .5
+- vocal2a: violin 1 .5
+- vocal2b: violin .5 .5
 - drum1: perc .2 .5
 - drum2: perc .1 .5
 - drum3: perc .1 .5
-- bass1: abass .2 .5
+- bass1: abass .5 .5
 - bass2: ebassp .5 .5
-- guitar1: dguitar .1 .5
+- guitar1: dguitar .15 .5
 - guitar2: eguitc .1 .2
-- string1: violin .5 .5
-- string2: viola .5 .5
+- string1: violin .7 .5
+- string2: viola .7 .5
 - string3: cello .7 .5
 - string4: contra .7 .5
 
