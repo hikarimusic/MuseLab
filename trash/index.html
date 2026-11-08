@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MuseLab Web Composer</title>
+  <script src="src/soundfont-player.js"></script>
+  <script src="src/data.js"></script>
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 18V5l12-2v13"></path>
+        <circle cx="6" cy="18" r="3"></circle>
+        <circle cx="18" cy="16" r="3"></circle>
+      </svg>
+      MuseLab
+    </div>
+    
+    <div class="controls">
+      <button id="exampleBtn" title="Examples (Ctrl+E)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Examples
+      </button>
+      <button id="guideBtn" title="Guide (Ctrl+G)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Guide
+      </button>
+      <button id="saveBtn" title="Save (Ctrl+S)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Save
+      </button>
+      <button id="playBtn" class="btn-play" title="Play (Ctrl+Enter)">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        Play
+      </button>
+      <button id="stopBtn" class="btn-stop" style="display: none;" title="Stop (Ctrl+Enter)">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <rect x="6" y="6" width="12" height="12"/>
+        </svg>
+        Stop
+      </button>
+    </div>
+  </div>
+
+  <!-- NEW: Timeline ruler -->
+  <div id="timeline" class="timeline">
+    <div id="timelineRuler" class="timeline-ruler"></div>
+    <div id="timelineSections" class="timeline-sections"></div>
+  </div>
+
+  <div class="editor-container">
+    <div id="status" class="status-bar"></div>
+    <div id="error" class="error-bar"></div>
+    <textarea id="notation" spellcheck="false" placeholder="Enter your composition here..."></textarea>
+  </div>
+
+  <div id="guidePanel" class="side-panel">
+    <h3>Notation Guide</h3>
+    
+    <h4>1. Define Section</h4>
+    <p><code>section_name: beats key tempo</code></p>
+    <p class="example">c1: 64 g4 190 → Section "c1", 64 beats long, key of G4, 190 BPM</p>
+    
+    <h4>2. Add Track</h4>
+    <p><code>- track_name: instrument volume pan</code></p>
+    <p class="example">- vocal: violin 1 .5 → Track uses violin, full volume, centered</p>
+    <p class="example">- bass: abass 0.8 0.5 → Track uses acoustic bass (shortcut), 80% volume</p>
+    
+    <h4>3. Set Track Start Time</h4>
+    <p><code>section.track: beats_offset</code></p>
+    <p class="example">c1.vocal: -4 → Vocal starts 4 beats before section begins</p>
+    <p class="example">c1.bass: 0 → Bass starts at section beginning</p>
+    
+    <h4>4. Define Rhythm</h4>
+    <p><code>- | durations |</code> (in beats)</p>
+    <p class="example">- | 1 1 2 | → Three notes: quarter, quarter, half</p>
+    <p class="example">- | 1.5 .5 1 1 | → Four notes with varying lengths</p>
+    
+    <h4>5. Define Melody</h4>
+    <p><code>- | notes |</code> (use note names, numbers, or shortcuts)</p>
+    <p class="example">- | c4 e4 g4 - | → C-E-G, then hold G (tie)</p>
+    <p class="example">- | . e4 d4 c4 | → Rest, then E-D-C</p>
+    <p class="example">- | c4-e4-g4 . | → C major chord, then rest</p>
+    
+    <h4>6. Add Lyrics (Optional)</h4>
+    <p><code>- | text |</code></p>
+    <p class="example">- | . ki mi ga | → Rest, then syllables for each note</p>
+    <br>
+    
+    <h3>Instrument Reference</h3>
+    <p class="note-text">Use shortcut <code>apiano</code> or number <code>0</code> in track definition</p>
+    <div id="instrumentList" class="code-list"></div>
+    <br>
+    
+    <h3>Note Reference</h3>
+    <p class="note-text">Use note name <code>c4</code> or MIDI number <code>60</code> in melody</p>
+    <div id="noteList" class="code-list"></div>
+    <br>
+    
+    <h3>Percussion Reference</h3>
+    <p class="note-text">Requires instrument <code>perc</code> (128). Use shortcut <code>xb</code> or MIDI <code>36</code></p>
+    <div id="percussionList" class="code-list"></div>
+  </div>
+
+  <div id="examplePanel" class="side-panel">
+    <h3>Examples</h3>
+    <div id="exampleList" class="example-list">
+      <div class="example-item" data-file="examples/打上花火.txt">
+        <div class="example-name">打上花火</div>
+        <div class="example-desc">DAOKO×米津玄師</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="src/script.js"></script>
+</body>
+</html>

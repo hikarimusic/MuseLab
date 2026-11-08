@@ -14,7 +14,10 @@ function showError(msg) {
     const el = document.getElementById('error');
     el.textContent = msg;
     el.classList.add('visible');
-    setTimeout(() => el.classList.remove('visible'), 5000);
+}
+
+function hideError() {
+    document.getElementById('error').classList.remove('visible');
 }
 
 function showStatus(msg) {
@@ -27,29 +30,59 @@ function hideStatus() {
     document.getElementById('status').classList.remove('visible');
 }
 
-function parseNote(noteStr, keyOffset = 0, isPercussion = false) {
+function parseNote(noteStr, key, isPercussion) {
     if (!noteStr || noteStr === '.' || noteStr === '') return null;
-    
     if (isPercussion) {
-        const percLower = noteStr.toLowerCase();
-        if (percussionMap[percLower] !== undefined) {
-            return percussionMap[percLower];
-        }
+        return percussionMap[noteStr.toLowerCase()] || 36;
     }
-
-    const match = noteStr.toLowerCase().match(/^([a-g][sb]?)(\d+)$/);
+    const match = noteStr.toLowerCase().match(/^([a-g][sb]?)(\d*)$/);
     if (!match) return null;
-    
     const [, note, octave] = match;
-    const midiNote = (parseInt(octave) + 1) * 12 + noteMap[note];
-    
-    return midiNote - 60 + keyOffset;
+    const midiNote = (parseInt(octave || '4') + 1) * 12 + noteMap[note];
+    return midiNote - 60 + key;
 }
 
-function parseChord(chordStr, keyOffset = 0, isPercussion = false) {
-    if (!chordStr || chordStr === '.' || chordStr === '') return null;
-    const notes = chordStr.split('-');
-    return notes.map(n => parseNote(n, keyOffset, isPercussion)).filter(n => n !== null);
+function buildEvents(track, start, slots, key) {
+    let time = start;
+    let lastEvent = null;
+    let lastNotes = null;
+    const overlaps = e => e.time + e.duration > start;
+    while (track.events.length && overlaps(track.events.at(-1))) {
+        track.events.pop();
+    }
+    slots.forEach(slot => {
+        if (!/^\d*\.?\d+$/.test(slot.duration)) {
+            showError(`Invalid duration "${slot.duration}" at beat ${time}`);
+            return;
+        }
+        const duration = parseFloat(slot.duration) || 0;
+        let notes = slot.notes;
+        if (notes === '-') {
+            if (lastEvent) lastEvent.duration += duration;
+            notes = null;
+        }
+        else if (notes === '=') {
+            notes = lastNotes;
+        }
+        else if (notes === '.') {
+            notes = null;
+        }
+        else {
+            notes = notes.split('-').map(n => parseNote(n, key, track.isPercussion));
+            if (notes.includes(null)) {
+                showError(`Invalid note "${slot.notes}" at beat ${time}`);
+                notes = null;
+            }
+        }
+        const lyric = slot.lyric === '.' ? null : slot.lyric;
+        if (duration > 0 && notes?.length) {
+            const event = {time, duration, notes, lyric};
+            track.events.push(event);
+            lastEvent = event;
+            lastNotes = notes;
+        }
+        time += duration;
+    });
 }
 
 function parseNotation(text) {
@@ -57,128 +90,71 @@ function parseNotation(text) {
     const sections = {};
     let currentSection = null;
     let currentTrack = null;
-    let pendingRhythm = null;
-    let pendingMelody = null;
-
+    let currentStart = null;
+    let currentSlots = null;
     for (const line of lines) {
-        if (line.match(/^[^\s:.]+:/i) && !line.includes('.')) {
+        if (!line.startsWith('-') && !line.includes('.')) {
             const [name, ...params] = line.split(/[\s:]+/).filter(p => p);
             const length = parseInt(params[0]) || 32;
-            const keyStr = params[1] || 'c4';
+            const key = parseNote(params[1], 60) || 60;
             const tempo = parseInt(params[2]) || 120;
-            
-            const keyMidi = parseNote(keyStr, 60);
-            
-            sections[name] = {
-                length, 
-                key: keyMidi,
-                tempo, 
-                tracks: {}
-            };
+            sections[name] = {length, key, tempo, tracks: {}};
             currentSection = name;
             currentTrack = null;
-            pendingRhythm = null;
-            pendingMelody = null;
-        } else if (line.startsWith('- ') && line.includes(':') && !currentTrack) {
-            const match = line.match(/- ([^\s:]+):\s*([^\s]+)(?:\s+([\d.]+))?(?:\s+([\d.]+))?/i);
-            if (match && currentSection) {
-                const [, trackName, instrumentName, vol, pan] = match;
-                const instrumentNum = instrumentMap[instrumentName.toLowerCase()] ?? parseInt(instrumentName) ?? 0;
-                const isPercussion = instrumentName.toLowerCase() === 'perc' || instrumentNum === 128;
-                sections[currentSection].tracks[trackName] = {
-                    instrument: instrumentNum,
-                    isPercussion: isPercussion,
-                    volume: vol !== undefined ? parseFloat(vol) : 0.8,
-                    pan: pan !== undefined ? parseFloat(pan) : 0.5,
-                    events: []
-                };
+        } 
+        else if (line.startsWith('-') && !currentTrack) {
+            const [trackName, ...params] = line.substring(1).split(/[\s:]+/).filter(p => p);
+            if (!sections[currentSection]) {
+                showError(`No section for track "${trackName}"`);
+                break;
             }
-        } else if (line.match(/^[^\s:.]+\.[^\s:.]+:/i)) {
-            const [trackPath, offsetStr] = line.split(':').map(s => s.trim());
-            const [secName, trkName] = trackPath.split('.');
+            const instrument = instrumentMap[(params[0] ?? '').toLowerCase()] ?? (parseInt(params[0]) || 0);
+            const isPercussion = instrument === 128;
+            const gain = isNaN(parseFloat(params[1])) ? 1 : parseFloat(params[1]);
+            const pan  = isNaN(parseFloat(params[2])) ? 0.5 : parseFloat(params[2]);
+            sections[currentSection].tracks[trackName] = {instrument, isPercussion, gain, pan, events: []};
+        } 
+        else if (!line.startsWith('-')) {
+            const [trackPath, startStr] = line.split(/[\s:]+/).filter(t => t);
+            const [secName, trackName] = trackPath.split('.');
+            if (!sections[secName]?.tracks[trackName]) {
+                showError(`Track "${secName}.${trackName}" not found`);
+                break;
+            }
             currentSection = secName;
-            currentTrack = trkName;
-            
-            if (sections[currentSection]?.tracks[currentTrack]) {
-                sections[currentSection].tracks[currentTrack].startOffset = parseFloat(offsetStr) || 0;
+            currentTrack = trackName;
+            currentStart = parseFloat(startStr) || 0;
+            currentSlots = [];
+        } 
+        else {
+            const tokens = line.substring(1).split(/[\s|]+/).filter(t => t);
+            const section = sections[currentSection];
+            const track = section.tracks[currentTrack];
+            if (tokens.length === 0) continue;
+            const isMarker = t => t === '.' || t === '-' || t === '=';
+            const isNumber = t => /^\d*\.?\d+$/.test(t);
+            const isNote = t => /^[a-g][sb]?\d$/i.test(t.split('-')[0]);
+            const first = tokens.find(t => !isMarker(t)) ?? tokens[0];
+            let field;
+            if (isNumber(first)) {
+                field = 'duration';
+            } 
+            else if (isNote(first) || track.isPercussion) {
+                field = 'notes';
+            } 
+            else {
+                field = 'lyric';
             }
-            
-            pendingRhythm = null;
-            pendingMelody = null;
-        } else if (line.startsWith('- |') && currentSection && currentTrack) {
-            const content = line.substring(3).split('|').map(s => s.trim()).filter(s => s);
-            
-            if (!pendingRhythm) {
-                pendingRhythm = content;
-            } else if (!pendingMelody) {
-                pendingMelody = content;
-                const track = sections[currentSection]?.tracks[currentTrack];
-                const section = sections[currentSection];
-                
-                if (track && section) {
-                    const startOffset = track.startOffset || 0;
-                    const keyOffset = section.key;
-                    const isPercussion = track.isPercussion || false;
-                    let time = startOffset;
-                    let lastEvent = null;
-                    let lastMelody = null;
-                    
-                    pendingRhythm.forEach((segment, segIdx) => {
-                        const rhythms = segment.split(/\s+/).filter(r => r);
-                        const melodies = pendingMelody[segIdx]?.split(/\s+/).filter(m => m) || [];
-                        
-                        rhythms.forEach((r, i) => {
-                            const duration = r === '.' ? 0 : parseFloat(r);
-                            let melody = melodies[i];
-                            
-                            if (melody === '=') {
-                                melody = lastMelody;
-                            }
-                            
-                            if (melody === '-') {
-                                if (lastEvent) {
-                                    lastEvent.duration += duration;
-                                }
-                            } else if (melody && melody !== '.') {
-                                const notes = melody.includes('-') ? 
-                                    parseChord(melody, keyOffset, isPercussion) : 
-                                    [parseNote(melody, keyOffset, isPercussion)];
-                                if (notes && notes[0] !== null) {
-                                    const event = {
-                                        time,
-                                        duration,
-                                        notes: notes.filter(n => n !== null),
-                                        lyric: null
-                                    };
-                                    track.events.push(event);
-                                    lastEvent = event;
-                                    lastMelody = melody;
-                                }
-                            }
-                            time += duration;
-                        });
-                    });
-                }
-            } else {
-                const lyrics = content;
-                const track = sections[currentSection]?.tracks[currentTrack];
-                
-                if (track && track.events.length > 0) {
-                    let eventIdx = 0;
-                    lyrics.forEach(segment => {
-                        const lyricsArr = segment.split(/\s+/).filter(l => l);
-                        lyricsArr.forEach(lyric => {
-                            if (eventIdx < track.events.length && lyric !== '.') {
-                                track.events[eventIdx].lyric = lyric;
-                            }
-                            eventIdx++;
-                        });
-                    });
-                }
-                
-                pendingRhythm = null;
-                pendingMelody = null;
+            if (currentSlots.length === 0) {
+                const duration = '1';
+                const notes = track.isPercussion ? 'b' : 'c4';
+                const lyric = null;
+                currentSlots = tokens.map(() => ({ duration, notes, lyric}));
             }
+            tokens.slice(0, currentSlots.length).forEach((t, i) => {
+                currentSlots[i][field] = t;
+            });
+            buildEvents(track, currentStart, currentSlots, section.key);
         }
     }
     return sections;
@@ -399,7 +375,7 @@ async function play() {
                     const timeout = setTimeout(() => {
                         if (isPlaying) {
                             event.notes.forEach(note => {
-                                instrument.play(note, audioContext.currentTime, { duration, gain: track.volume });
+                                instrument.play(note, audioContext.currentTime, { duration, gain: track.gain });
                             });
                         }
                     }, startTimeSec * 1000);
@@ -447,25 +423,177 @@ function stop(autoStop = false) {
     document.getElementById('stopBtn').style.display = 'none';
 }
 
+// ---------- MIDI export ----------
+
+function writeVarLen(value, out) {
+    const bytes = [value & 0x7f];
+    while ((value >>>= 7) > 0) {
+        bytes.unshift((value & 0x7f) | 0x80);
+    }
+    out.push(...bytes);
+}
+
+function metaEvent(type, dataBytes) {
+    const out = [0xff, type];
+    writeVarLen(dataBytes.length, out);
+    out.push(...dataBytes);
+    return out;
+}
+
+function encodeTrack(events, endTick) {
+    // order: 0 = setup, 1 = note off, 2 = meta/lyric, 3 = note on
+    events.sort((a, b) => a.tick - b.tick || a.order - b.order);
+    const data = [];
+    let lastTick = 0;
+    events.forEach(e => {
+        writeVarLen(e.tick - lastTick, data);
+        data.push(...e.bytes);
+        lastTick = e.tick;
+    });
+    writeVarLen(Math.max(0, endTick - lastTick), data);
+    data.push(0xff, 0x2f, 0x00); // end of track
+    const len = data.length;
+    return [0x4d, 0x54, 0x72, 0x6b, // "MTrk"
+        (len >>> 24) & 0xff, (len >>> 16) & 0xff, (len >>> 8) & 0xff, len & 0xff,
+        ...data];
+}
+
+function buildMidi(sections) {
+    const PPQ = 480;
+    const enc = new TextEncoder();
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+    // Beat offset of each section
+    const offsets = {};
+    let offset = 0;
+    Object.entries(sections).forEach(([name, section]) => {
+        offsets[name] = offset;
+        offset += section.length;
+    });
+    const songEndBeat = offset;
+
+    // Events may start before beat 0 (pickups), so shift everything forward
+    let minBeat = 0;
+    Object.entries(sections).forEach(([name, section]) => {
+        Object.values(section.tracks).forEach(track => {
+            track.events.forEach(e => {
+                minBeat = Math.min(minBeat, offsets[name] + e.time);
+            });
+        });
+    });
+    const shift = -minBeat;
+    const toTick = beat => Math.max(0, Math.round((beat + shift) * PPQ));
+
+    let endTick = toTick(songEndBeat);
+    Object.entries(sections).forEach(([name, section]) => {
+        Object.values(section.tracks).forEach(track => {
+            track.events.forEach(e => {
+                endTick = Math.max(endTick, toTick(offsets[name] + e.time + e.duration));
+            });
+        });
+    });
+
+    // Conductor track: tempo changes and section markers
+    const conductor = [];
+    conductor.push({tick: 0, order: 0, bytes: metaEvent(0x03, [...enc.encode('Conductor')])});
+    Object.entries(sections).forEach(([name, section]) => {
+        const tick = toTick(offsets[name]);
+        const mpq = Math.round(60000000 / (section.tempo || 120));
+        conductor.push({tick, order: 0, bytes: [0xff, 0x51, 0x03, (mpq >> 16) & 0xff, (mpq >> 8) & 0xff, mpq & 0xff]});
+        conductor.push({tick, order: 2, bytes: metaEvent(0x06, [...enc.encode(name)])});
+    });
+
+    // Group tracks with the same name across sections into one MIDI track
+    const groups = new Map();
+    Object.entries(sections).forEach(([sectionName, section]) => {
+        Object.entries(section.tracks).forEach(([trackName, track]) => {
+            const key = track.isPercussion ? `${trackName}#perc` : trackName;
+            if (!groups.has(key)) groups.set(key, {name: trackName, isPercussion: track.isPercussion, parts: []});
+            groups.get(key).parts.push({sectionName, track});
+        });
+    });
+
+    // Assign channels: percussion on channel 10 (index 9), others skip it
+    let nextChannel = 0;
+    const midiTracks = [encodeTrack(conductor, endTick)];
+    groups.forEach(group => {
+        let channel;
+        if (group.isPercussion) {
+            channel = 9;
+        } else {
+            channel = nextChannel;
+            nextChannel = (nextChannel + 1) % 16;
+            if (nextChannel === 9) nextChannel = 10;
+        }
+
+        const events = [{tick: 0, order: 0, bytes: metaEvent(0x03, [...enc.encode(group.name)])}];
+        group.parts.forEach(({sectionName, track}) => {
+            const sectionTick = toTick(offsets[sectionName]);
+            if (!track.isPercussion) {
+                events.push({tick: sectionTick, order: 0, bytes: [0xc0 | channel, clamp(track.instrument | 0, 0, 127)]});
+            }
+            events.push({tick: sectionTick, order: 0, bytes: [0xb0 | channel, 10, clamp(Math.round(track.pan * 127), 0, 127)]});
+
+            const velocity = clamp(Math.round((isNaN(track.gain) ? 1 : track.gain) * 100), 1, 127);
+            track.events.forEach(e => {
+                const beat = offsets[sectionName] + e.time;
+                const on = toTick(beat);
+                const off = Math.max(on + 1, toTick(beat + e.duration));
+                if (e.lyric) {
+                    events.push({tick: on, order: 2, bytes: metaEvent(0x05, [...enc.encode(e.lyric)])});
+                }
+                e.notes.forEach(n => {
+                    const note = clamp(n, 0, 127);
+                    events.push({tick: on, order: 3, bytes: [0x90 | channel, note, velocity]});
+                    events.push({tick: off, order: 1, bytes: [0x80 | channel, note, 0]});
+                });
+            });
+        });
+        midiTracks.push(encodeTrack(events, endTick));
+    });
+
+    const header = [0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, // "MThd", length 6
+        0, 1,                                                // format 1
+        (midiTracks.length >> 8) & 0xff, midiTracks.length & 0xff,
+        (PPQ >> 8) & 0xff, PPQ & 0xff];
+    return new Uint8Array([...header, ...midiTracks.flat()]);
+}
+
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function saveFile() {
     const notation = document.getElementById('notation').value;
-    
+
     if (!notation.trim()) {
         showError('Nothing to save');
         return;
     }
-    
-    const blob = new Blob([notation], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'composition.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showStatus('File saved!');
+
+    downloadBlob(new Blob([notation], { type: 'text/plain' }), 'composition.txt');
+
+    const sections = parseNotation(notation);
+    if (Object.keys(sections).length === 0) {
+        showError('No valid sections found, MIDI not saved');
+        return;
+    }
+    try {
+        const midi = buildMidi(sections);
+        downloadBlob(new Blob([midi], { type: 'audio/midi' }), 'composition.mid');
+    } catch (e) {
+        showError(`Could not create MIDI: ${e.message}`);
+        return;
+    }
+
+    showStatus('Files saved!');
     setTimeout(hideStatus, 2000);
 }
 
@@ -518,6 +646,7 @@ document.getElementById('exampleBtn').addEventListener('click', () => {
 document.getElementById('timeline').addEventListener('click', handleTimelineClick);
 
 document.getElementById('notation').addEventListener('input', () => {
+    hideError();
     clearTimeout(window.timelineUpdateTimeout);
     window.timelineUpdateTimeout = setTimeout(() => {
         renderTimeline();
@@ -646,5 +775,19 @@ function populateGuide() {
 }
 
 // Initialize
+document.getElementById('notation').value = `a1: 16 d4 90
+- main: flute 1 .5
+- chord: strings1 .5 .5
+- drum: perc .5 .5
+
+a1.main: 0
+- | .25 .25 .25 .25 | .5 .5 .25 .5 .75 .5 .25 .25 .25 .25 | .5 .5 .25 .5 .75 1.5 |
+- |  f5  e5  d5  c5 | g5 g5  g5 a5  g5  .  f5  e5  d5  c5 | d5 d5  d5  e5 e5   . |
+a1.chord: 1
+- |         2             2 |           2           2 |
+- | a2-a3-c4-e4 f2-f3-a3-c4 | g2-g3-b3-d4 c3-g3-c4-e4 |
+a1.drum: 1
+- | 1 1 .5 .5 1 | 1 1 .5 .5 1 |
+- | b s  b  b s | b s  b  b s |`;
 populateGuide();
 renderTimeline();
