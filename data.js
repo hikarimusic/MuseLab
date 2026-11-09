@@ -1,104 +1,88 @@
-// Note mappings
 const noteMap = {
-    c: 0, cs: 1, db: 1, d: 2, ds: 3, eb: 3, e: 4, f: 5,
-    fs: 6, gb: 6, g: 7, gs: 8, ab: 8, a: 9, as: 10, bb: 10, b: 11
+    c:  0,  // C
+    cs: 1,  // C#
+    db: 1,  // Db
+    d:  2,  // D
+    ds: 3,  // D#
+    eb: 3,  // Eb
+    e:  4,  // E
+    f:  5,  // F
+    fs: 6,  // F#
+    gb: 6,  // Gb
+    g:  7,  // G
+    gs: 8,  // G#
+    ab: 8,  // Ab
+    a:  9,  // A
+    as: 10, // A#
+    bb: 10, // Bb
+    b:  11  // B
 };
 
-// Instrument shortcuts
-const instrumentShortcuts = {
-    apiano: 0, bpiano: 1, epiano: 2, hpiano: 3, ep1: 4, ep2: 5,
-    harpsi: 6, clavi: 7, celesta: 8, glock: 9, mbox: 10, vibes: 11,
-    marimba: 12, xylo: 13, bells: 14, dulcimer: 15, organ1: 16, organ2: 17,
-    organ3: 18, church: 19, reed: 20, accord: 21, harmon: 22, tango: 23,
-    aguitn: 24, aguits: 25, eguitj: 26, eguitc: 27, eguitm: 28, oguitar: 29,
-    dguitar: 30, gharm: 31, abass: 32, ebassf: 33, ebassp: 34, fbass: 35,
-    slap1: 36, slap2: 37, sbass1: 38, sbass2: 39, violin: 40, viola: 41,
-    cello: 42, contra: 43, tremolo: 44, pizz: 45, harp: 46, timp: 47,
-    strings1: 48, strings2: 49, sstrings1: 50, sstrings2: 51, choir: 52,
-    oohs: 53, schoir: 54, ohit: 55, trumpet: 56, tbone: 57, tuba: 58,
-    mtrumpet: 59, fhorn: 60, brass: 61, sbrass1: 62, sbrass2: 63,
-    ssax: 64, asax: 65, tsax: 66, bsax: 67, oboe: 68, ehorn: 69,
-    bassoon: 70, clarinet: 71, piccolo: 72, flute: 73, recorder: 74,
-    pan: 75, bottle: 76, shaku: 77, whistle: 78, ocarina: 79,
-    square: 80, saw: 81, calliope: 82, chiff: 83, charang: 84,
-    voice: 85, fifths: 86, basslead: 87, pad1: 88, pad2: 89,
-    pad3: 90, pad4: 91, pad5: 92, pad6: 93, pad7: 94, pad8: 95,
-    rain: 96, sound: 97, crystal: 98, atmos: 99, bright: 100,
-    goblins: 101, echoes: 102, scifi: 103, sitar: 104, banjo: 105,
-    shamisen: 106, koto: 107, kalimba: 108, bagpipe: 109, fiddle: 110,
-    shanai: 111, tbell: 112, agogo: 113, steel: 114, wood: 115,
-    taiko: 116, mtom: 117, sdrum: 118, rcymbal: 119, gnoise: 120,
-    bnoise: 121, sea: 122, bird: 123, phone: 124, heli: 125,
-    applause: 126, gun: 127, perc: 128
-};
-
-// Percussion/Drum note mappings (shortcuts to MIDI)
 const percussionMap = {
-    x: 26,   // Silence
-    hq: 27,  // High-Q
-    sl: 28,  // Slap
-    sp: 29,  // Scratch Push
-    spl: 30, // Scratch Pull
-    st: 31,  // Sticks
-    sq: 32,  // Square Click
-    mc: 33,  // Metronome Click
-    mb: 34,  // Metronome Bell
-    bd: 35,  // Acoustic Bass Drum
-    b: 36,   // Bass Drum
-    ss: 37,  // Side Stick
-    s: 38,   // Acoustic Snare
-    hcl: 39,  // Hand Clap
-    se: 40,  // Electric Snare
-    tlf: 41, // Low Floor Tom
-    hc: 42, // Closed Hi Hat
-    thf: 43, // High Floor Tom
-    hp: 44,  // Pedal Hi-Hat
-    tl: 45,  // Low Tom
-    h: 46,   // Open Hi-Hat
-    tlm: 47, // Low-Mid Tom
-    thm: 48, // Hi-Mid Tom
-    c1: 49,  // Crash Cymbal 1
-    th: 50,  // High Tom
-    r1: 51,  // Ride Cymbal 1
-    cc: 52,  // Chinese Cymbal
-    rb: 53,  // Ride Bell
-    tb: 54,  // Tambourine
-    sc: 55,  // Splash Cymbal
-    cw: 56,  // Cowbell
-    c2: 57,  // Crash Cymbal 2
-    vs: 58,  // Vibraslap
-    r2: 59,  // Ride Cymbal 2
-    bh: 60,  // Hi Bongo
-    bl: 61,  // Low Bongo
-    chm: 62, // Mute Hi Conga
-    cho: 63, // Open Hi Conga
-    cl: 64,  // Low Conga
-    tih: 65, // High Timbale
-    til: 66, // Low Timbale
-    agh: 67, // High Agogo
-    agl: 68, // Low Agogo
-    cab: 69, // Cabasa
-    mar: 70, // Maracas
-    ws: 71,  // Short Whistle
-    wl: 72,  // Long Whistle
-    gs: 73,  // Short Guiro
-    gl: 74,  // Long Guiro
-    cla: 75, // Claves
-    wbh: 76, // Hi Wood Block
-    wbl: 77, // Low Wood Block
-    cum: 78, // Mute Cuica
-    cuo: 79, // Open Cuica
-    tm: 80,  // Mute Triangle
-    to: 81,  // Open Triangle
-    sh: 82,  // Shaker
-    jb: 83,  // Jingle Bell
-    bt: 84,  // Bell Tree
+    x:    26, // Silence
+    hq:   27, // High-Q
+    sl:   28, // Slap
+    sp:   29, // Scratch Push
+    spl:  30, // Scratch Pull
+    st:   31, // Sticks
+    sq:   32, // Square Click
+    mc:   33, // Metronome Click
+    mb:   34, // Metronome Bell
+    bd:   35, // Acoustic Bass Drum
+    b:    36, // Bass Drum
+    ss:   37, // Side Stick
+    s:    38, // Acoustic Snare
+    hcl:  39, // Hand Clap
+    se:   40, // Electric Snare
+    tlf:  41, // Low Floor Tom
+    hc:   42, // Closed Hi Hat
+    thf:  43, // High Floor Tom
+    hp:   44, // Pedal Hi-Hat
+    tl:   45, // Low Tom
+    h:    46, // Open Hi-Hat
+    tlm:  47, // Low-Mid Tom
+    thm:  48, // Hi-Mid Tom
+    c1:   49, // Crash Cymbal 1
+    th:   50, // High Tom
+    r1:   51, // Ride Cymbal 1
+    cc:   52, // Chinese Cymbal
+    rb:   53, // Ride Bell
+    tb:   54, // Tambourine
+    sc:   55, // Splash Cymbal
+    cw:   56, // Cowbell
+    c2:   57, // Crash Cymbal 2
+    vs:   58, // Vibraslap
+    r2:   59, // Ride Cymbal 2
+    bh:   60, // Hi Bongo
+    bl:   61, // Low Bongo
+    chm:  62, // Mute Hi Conga
+    cho:  63, // Open Hi Conga
+    cl:   64, // Low Conga
+    tih:  65, // High Timbale
+    til:  66, // Low Timbale
+    agh:  67, // High Agogo
+    agl:  68, // Low Agogo
+    cab:  69, // Cabasa
+    mar:  70, // Maracas
+    ws:   71, // Short Whistle
+    wl:   72, // Long Whistle
+    gs:   73, // Short Guiro
+    gl:   74, // Long Guiro
+    cla:  75, // Claves
+    wbh:  76, // Hi Wood Block
+    wbl:  77, // Low Wood Block
+    cum:  78, // Mute Cuica
+    cuo:  79, // Open Cuica
+    tm:   80, // Mute Triangle
+    to:   81, // Open Triangle
+    sh:   82, // Shaker
+    jb:   83, // Jingle Bell
+    bt:   84, // Bell Tree
     cast: 85, // Castanets
-    sm: 86,  // Mute Surdo
-    so: 87   // Open Surdo
+    sm:   86, // Mute Surdo
+    so:   87  // Open Surdo
 };
 
-// Full percussion names
 const percussionNames = {
     26: "Silence",
     27: "High-Q",
@@ -164,168 +148,266 @@ const percussionNames = {
     87: "Open Surdo"
 };
 
-// Instrument display names and code names
-const instrumentList = [
-    "Acoustic Grand Piano",
-    "Bright Acoustic Piano",
-    "Electric Grand Piano",
-    "Honkytonk Piano",
-    "Electric Piano 1",
-    "Electric Piano 2",
-    "Harpsichord",
-    "Clavinet",
-    "Celesta",
-    "Glockenspiel",
-    "Music Box",
-    "Vibraphone",
-    "Marimba",
-    "Xylophone",
-    "Tubular Bells",
-    "Dulcimer",
-    "Drawbar Organ",
-    "Percussive Organ",
-    "Rock Organ",
-    "Church Organ",
-    "Reed Organ",
-    "Accordion",
-    "Harmonica",
-    "Tango Accordion",
-    "Acoustic Guitar (Nylon)",
-    "Acoustic Guitar (Steel)",
-    "Electric Guitar (Jazz)",
-    "Electric Guitar (Clean)",
-    "Electric Guitar (Muted)",
-    "Overdriven Guitar",
-    "Distortion Guitar",
-    "Guitar Harmonics",
-    "Acoustic Bass",
-    "Electric Bass (Finger)",
-    "Electric Bass (Pick)",
-    "Fretless Bass",
-    "Slap Bass 1",
-    "Slap Bass 2",
-    "Synth Bass 1",
-    "Synth Bass 2",
-    "Violin",
-    "Viola",
-    "Cello",
-    "Contrabass",
-    "Tremolo Strings",
-    "Pizzicato Strings",
-    "Orchestral Harp",
-    "Timpani",
-    "String Ensemble 1",
-    "String Ensemble 2",
-    "Synth Strings 1",
-    "Synth Strings 2",
-    "Choir Aahs",
-    "Voice Oohs",
-    "Synth Choir",
-    "Orchestra Hit",
-    "Trumpet",
-    "Trombone",
-    "Tuba",
-    "Muted Trumpet",
-    "French Horn",
-    "Brass Section",
-    "Synth Brass 1",
-    "Synth Brass 2",
-    "Soprano Sax",
-    "Alto Sax",
-    "Tenor Sax",
-    "Baritone Sax",
-    "Oboe",
-    "English Horn",
-    "Bassoon",
-    "Clarinet",
-    "Piccolo",
-    "Flute",
-    "Recorder",
-    "Pan Flute",
-    "Blown Bottle",
-    "Shakuhachi",
-    "Whistle",
-    "Ocarina",
-    "Lead 1 (Square)",
-    "Lead 2 (Sawtooth)",
-    "Lead 3 (Calliope)",
-    "Lead 4 (Chiff)",
-    "Lead 5 (Charang)",
-    "Lead 6 (Voice)",
-    "Lead 7 (Fifths)",
-    "Lead 8 (Bass + Lead)",
-    "Pad 1 (New Age)",
-    "Pad 2 (Warm)",
-    "Pad 3 (Polysynth)",
-    "Pad 4 (Choir)",
-    "Pad 5 (Bowed)",
-    "Pad 6 (Metallic)",
-    "Pad 7 (Halo)",
-    "Pad 8 (Sweep)",
-    "FX 1 (Rain)",
-    "FX 2 (Soundtrack)",
-    "FX 3 (Crystal)",
-    "FX 4 (Atmosphere)",
-    "FX 5 (Brightness)",
-    "FX 6 (Goblins)",
-    "FX 7 (Echoes)",
-    "FX 8 (Sci-Fi)",
-    "Sitar",
-    "Banjo",
-    "Shamisen",
-    "Koto",
-    "Kalimba",
-    "Bagpipe",
-    "Fiddle",
-    "Shanai",
-    "Tinkle Bell",
-    "Agogo",
-    "Steel Drums",
-    "Woodblock",
-    "Taiko Drum",
-    "Melodic Tom",
-    "Synth Drum",
-    "Reverse Cymbal",
-    "Guitar Fret Noise",
-    "Breath Noise",
-    "Seashore",
-    "Bird Tweet",
-    "Telephone Ring",
-    "Helicopter",
-    "Applause",
-    "Gunshot"
-];
+const instrumentMap = {
+    apiano:    0,   // Acoustic Grand Piano
+    bpiano:    1,   // Bright Acoustic Piano
+    epiano:    2,   // Electric Grand Piano
+    hpiano:    3,   // Honkytonk Piano
+    ep1:       4,   // Electric Piano 1
+    ep2:       5,   // Electric Piano 2
+    harpsi:    6,   // Harpsichord
+    clavi:     7,   // Clavinet
+    celesta:   8,   // Celesta
+    glock:     9,   // Glockenspiel
+    mbox:      10,  // Music Box
+    vibes:     11,  // Vibraphone
+    marimba:   12,  // Marimba
+    xylo:      13,  // Xylophone
+    bells:     14,  // Tubular Bells
+    dulcimer:  15,  // Dulcimer
+    organ1:    16,  // Drawbar Organ
+    organ2:    17,  // Percussive Organ
+    organ3:    18,  // Rock Organ
+    church:    19,  // Church Organ
+    reed:      20,  // Reed Organ
+    accord:    21,  // Accordion
+    harmon:    22,  // Harmonica
+    tango:     23,  // Tango Accordion
+    aguitn:    24,  // Acoustic Guitar (Nylon)
+    aguits:    25,  // Acoustic Guitar (Steel)
+    eguitj:    26,  // Electric Guitar (Jazz)
+    eguitc:    27,  // Electric Guitar (Clean)
+    eguitm:    28,  // Electric Guitar (Muted)
+    oguitar:   29,  // Overdriven Guitar
+    dguitar:   30,  // Distortion Guitar
+    gharm:     31,  // Guitar Harmonics
+    abass:     32,  // Acoustic Bass
+    ebassf:    33,  // Electric Bass (Finger)
+    ebassp:    34,  // Electric Bass (Pick)
+    fbass:     35,  // Fretless Bass
+    slap1:     36,  // Slap Bass 1
+    slap2:     37,  // Slap Bass 2
+    sbass1:    38,  // Synth Bass 1
+    sbass2:    39,  // Synth Bass 2
+    violin:    40,  // Violin
+    viola:     41,  // Viola
+    cello:     42,  // Cello
+    contra:    43,  // Contrabass
+    tremolo:   44,  // Tremolo Strings
+    pizz:      45,  // Pizzicato Strings
+    harp:      46,  // Orchestral Harp
+    timp:      47,  // Timpani
+    strings1:  48,  // String Ensemble 1
+    strings2:  49,  // String Ensemble 2
+    sstrings1: 50,  // Synth Strings 1
+    sstrings2: 51,  // Synth Strings 2
+    choir:     52,  // Choir Aahs
+    oohs:      53,  // Voice Oohs
+    schoir:    54,  // Synth Choir
+    ohit:      55,  // Orchestra Hit
+    trumpet:   56,  // Trumpet
+    tbone:     57,  // Trombone
+    tuba:      58,  // Tuba
+    mtrumpet:  59,  // Muted Trumpet
+    fhorn:     60,  // French Horn
+    brass:     61,  // Brass Section
+    sbrass1:   62,  // Synth Brass 1
+    sbrass2:   63,  // Synth Brass 2
+    ssax:      64,  // Soprano Sax
+    asax:      65,  // Alto Sax
+    tsax:      66,  // Tenor Sax
+    bsax:      67,  // Baritone Sax
+    oboe:      68,  // Oboe
+    ehorn:     69,  // English Horn
+    bassoon:   70,  // Bassoon
+    clarinet:  71,  // Clarinet
+    piccolo:   72,  // Piccolo
+    flute:     73,  // Flute
+    recorder:  74,  // Recorder
+    pan:       75,  // Pan Flute
+    bottle:    76,  // Blown Bottle
+    shaku:     77,  // Shakuhachi
+    whistle:   78,  // Whistle
+    ocarina:   79,  // Ocarina
+    square:    80,  // Lead 1 (Square)
+    saw:       81,  // Lead 2 (Sawtooth)
+    calliope:  82,  // Lead 3 (Calliope)
+    chiff:     83,  // Lead 4 (Chiff)
+    charang:   84,  // Lead 5 (Charang)
+    voice:     85,  // Lead 6 (Voice)
+    fifths:    86,  // Lead 7 (Fifths)
+    basslead:  87,  // Lead 8 (Bass + Lead)
+    pad1:      88,  // Pad 1 (New Age)
+    pad2:      89,  // Pad 2 (Warm)
+    pad3:      90,  // Pad 3 (Polysynth)
+    pad4:      91,  // Pad 4 (Choir)
+    pad5:      92,  // Pad 5 (Bowed)
+    pad6:      93,  // Pad 6 (Metallic)
+    pad7:      94,  // Pad 7 (Halo)
+    pad8:      95,  // Pad 8 (Sweep)
+    rain:      96,  // FX 1 (Rain)
+    sound:     97,  // FX 2 (Soundtrack)
+    crystal:   98,  // FX 3 (Crystal)
+    atmos:     99,  // FX 4 (Atmosphere)
+    bright:    100, // FX 5 (Brightness)
+    goblins:   101, // FX 6 (Goblins)
+    echoes:    102, // FX 7 (Echoes)
+    scifi:     103, // FX 8 (Sci-Fi)
+    sitar:     104, // Sitar
+    banjo:     105, // Banjo
+    shamisen:  106, // Shamisen
+    koto:      107, // Koto
+    kalimba:   108, // Kalimba
+    bagpipe:   109, // Bagpipe
+    fiddle:    110, // Fiddle
+    shanai:    111, // Shanai
+    tbell:     112, // Tinkle Bell
+    agogo:     113, // Agogo
+    steel:     114, // Steel Drums
+    wood:      115, // Woodblock
+    taiko:     116, // Taiko Drum
+    mtom:      117, // Melodic Tom
+    sdrum:     118, // Synth Drum
+    rcymbal:   119, // Reverse Cymbal
+    gnoise:    120, // Guitar Fret Noise
+    bnoise:    121, // Breath Noise
+    sea:       122, // Seashore
+    bird:      123, // Bird Tweet
+    phone:     124, // Telephone Ring
+    heli:      125, // Helicopter
+    applause:  126, // Applause
+    gun:       127, // Gunshot
+    perc:      128  // Percussion
+};
 
-const instrumentCodeNames = [
-    "acoustic_grand_piano", "bright_acoustic_piano", "electric_grand_piano", "honkytonk_piano",
-    "electric_piano_1", "electric_piano_2", "harpsichord", "clavinet", "celesta", "glockenspiel",
-    "music_box", "vibraphone", "marimba", "xylophone", "tubular_bells", "dulcimer", "drawbar_organ",
-    "percussive_organ", "rock_organ", "church_organ", "reed_organ", "accordion", "harmonica", "tango_accordion",
-    "acoustic_guitar_nylon", "acoustic_guitar_steel", "electric_guitar_jazz", "electric_guitar_clean",
-    "electric_guitar_muted", "overdriven_guitar", "distortion_guitar", "guitar_harmonics", "acoustic_bass",
-    "electric_bass_finger", "electric_bass_pick", "fretless_bass", "slap_bass_1", "slap_bass_2",
-    "synth_bass_1", "synth_bass_2", "violin", "viola", "cello", "contrabass", "tremolo_strings",
-    "pizzicato_strings", "orchestral_harp", "timpani", "string_ensemble_1", "string_ensemble_2",
-    "synth_strings_1", "synth_strings_2", "choir_aahs", "voice_oohs", "synth_choir", "orchestra_hit",
-    "trumpet", "trombone", "tuba", "muted_trumpet", "french_horn", "brass_section", "synth_brass_1",
-    "synth_brass_2", "soprano_sax", "alto_sax", "tenor_sax", "baritone_sax", "oboe", "english_horn",
-    "bassoon", "clarinet", "piccolo", "flute", "recorder", "pan_flute", "blown_bottle", "shakuhachi",
-    "whistle", "ocarina", "lead_1_square", "lead_2_sawtooth", "lead_3_calliope", "lead_4_chiff",
-    "lead_5_charang", "lead_6_voice", "lead_7_fifths", "lead_8_bass_lead", "pad_1_new_age", "pad_2_warm",
-    "pad_3_polysynth", "pad_4_choir", "pad_5_bowed", "pad_6_metallic", "pad_7_halo", "pad_8_sweep",
-    "fx_1_rain", "fx_2_soundtrack", "fx_3_crystal", "fx_4_atmosphere", "fx_5_brightness", "fx_6_goblins",
-    "fx_7_echoes", "fx_8_scifi", "sitar", "banjo", "shamisen", "koto", "kalimba", "bagpipe", "fiddle",
-    "shanai", "tinkle_bell", "agogo", "steel_drums", "woodblock", "taiko_drum", "melodic_tom",
-    "synth_drum", "reverse_cymbal", "guitar_fret_noise", "breath_noise", "seashore", "bird_tweet",
-    "telephone_ring", "helicopter", "applause", "gunshot"
-];
-
-// Create instrument map from code names and shortcuts
-const instrumentMap = {};
-instrumentCodeNames.forEach((name, index) => {
-    instrumentMap[name] = index;
-});
-// Add shortcuts to instrument map
-Object.entries(instrumentShortcuts).forEach(([shortcut, index]) => {
-    instrumentMap[shortcut] = index;
-});
+const instrumentNames = {
+    0: "Acoustic Grand Piano",
+    1: "Bright Acoustic Piano",
+    2: "Electric Grand Piano",
+    3: "Honkytonk Piano",
+    4: "Electric Piano 1",
+    5: "Electric Piano 2",
+    6: "Harpsichord",
+    7: "Clavinet",
+    8: "Celesta",
+    9: "Glockenspiel",
+    10: "Music Box",
+    11: "Vibraphone",
+    12: "Marimba",
+    13: "Xylophone",
+    14: "Tubular Bells",
+    15: "Dulcimer",
+    16: "Drawbar Organ",
+    17: "Percussive Organ",
+    18: "Rock Organ",
+    19: "Church Organ",
+    20: "Reed Organ",
+    21: "Accordion",
+    22: "Harmonica",
+    23: "Tango Accordion",
+    24: "Acoustic Guitar (Nylon)",
+    25: "Acoustic Guitar (Steel)",
+    26: "Electric Guitar (Jazz)",
+    27: "Electric Guitar (Clean)",
+    28: "Electric Guitar (Muted)",
+    29: "Overdriven Guitar",
+    30: "Distortion Guitar",
+    31: "Guitar Harmonics",
+    32: "Acoustic Bass",
+    33: "Electric Bass (Finger)",
+    34: "Electric Bass (Pick)",
+    35: "Fretless Bass",
+    36: "Slap Bass 1",
+    37: "Slap Bass 2",
+    38: "Synth Bass 1",
+    39: "Synth Bass 2",
+    40: "Violin",
+    41: "Viola",
+    42: "Cello",
+    43: "Contrabass",
+    44: "Tremolo Strings",
+    45: "Pizzicato Strings",
+    46: "Orchestral Harp",
+    47: "Timpani",
+    48: "String Ensemble 1",
+    49: "String Ensemble 2",
+    50: "Synth Strings 1",
+    51: "Synth Strings 2",
+    52: "Choir Aahs",
+    53: "Voice Oohs",
+    54: "Synth Choir",
+    55: "Orchestra Hit",
+    56: "Trumpet",
+    57: "Trombone",
+    58: "Tuba",
+    59: "Muted Trumpet",
+    60: "French Horn",
+    61: "Brass Section",
+    62: "Synth Brass 1",
+    63: "Synth Brass 2",
+    64: "Soprano Sax",
+    65: "Alto Sax",
+    66: "Tenor Sax",
+    67: "Baritone Sax",
+    68: "Oboe",
+    69: "English Horn",
+    70: "Bassoon",
+    71: "Clarinet",
+    72: "Piccolo",
+    73: "Flute",
+    74: "Recorder",
+    75: "Pan Flute",
+    76: "Blown Bottle",
+    77: "Shakuhachi",
+    78: "Whistle",
+    79: "Ocarina",
+    80: "Lead 1 (Square)",
+    81: "Lead 2 (Sawtooth)",
+    82: "Lead 3 (Calliope)",
+    83: "Lead 4 (Chiff)",
+    84: "Lead 5 (Charang)",
+    85: "Lead 6 (Voice)",
+    86: "Lead 7 (Fifths)",
+    87: "Lead 8 (Bass + Lead)",
+    88: "Pad 1 (New Age)",
+    89: "Pad 2 (Warm)",
+    90: "Pad 3 (Polysynth)",
+    91: "Pad 4 (Choir)",
+    92: "Pad 5 (Bowed)",
+    93: "Pad 6 (Metallic)",
+    94: "Pad 7 (Halo)",
+    95: "Pad 8 (Sweep)",
+    96: "FX 1 (Rain)",
+    97: "FX 2 (Soundtrack)",
+    98: "FX 3 (Crystal)",
+    99: "FX 4 (Atmosphere)",
+    100: "FX 5 (Brightness)",
+    101: "FX 6 (Goblins)",
+    102: "FX 7 (Echoes)",
+    103: "FX 8 (Sci-Fi)",
+    104: "Sitar",
+    105: "Banjo",
+    106: "Shamisen",
+    107: "Koto",
+    108: "Kalimba",
+    109: "Bagpipe",
+    110: "Fiddle",
+    111: "Shanai",
+    112: "Tinkle Bell",
+    113: "Agogo",
+    114: "Steel Drums",
+    115: "Woodblock",
+    116: "Taiko Drum",
+    117: "Melodic Tom",
+    118: "Synth Drum",
+    119: "Reverse Cymbal",
+    120: "Guitar Fret Noise",
+    121: "Breath Noise",
+    122: "Seashore",
+    123: "Bird Tweet",
+    124: "Telephone Ring",
+    125: "Helicopter",
+    126: "Applause",
+    127: "Gunshot",
+    128: "Percussion"
+};

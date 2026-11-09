@@ -46,6 +46,7 @@ function buildEvents(track, start, slots, key) {
     let time = start;
     let lastEvent = null;
     let lastNotes = null;
+    let lastOctave = '4';
     const overlaps = e => e.time + e.duration > start;
     while (track.events.length && overlaps(track.events.at(-1))) {
         track.events.pop();
@@ -68,7 +69,14 @@ function buildEvents(track, start, slots, key) {
             notes = null;
         }
         else {
-            notes = notes.split('-').map(n => parseNote(n, key, track.isPercussion));
+            notes = notes.split('-').map(n => {
+                if (!track.isPercussion) {
+                    const octave = n.match(/\d+$/)?.[0];
+                    if (octave) lastOctave = octave;
+                    else n += lastOctave;
+                }
+                return parseNote(n, key, track.isPercussion);
+            });
             if (notes.includes(null)) {
                 showError(`Invalid note "${slot.notes}" at beat ${time}`);
                 notes = null;
@@ -95,8 +103,8 @@ function parseNotation(text) {
     for (const line of lines) {
         if (!line.startsWith('-') && !line.includes('.')) {
             const [name, ...params] = line.split(/[\s:]+/).filter(p => p);
-            const length = parseInt(params[0]) || 32;
-            const key = parseNote(params[1], 60) || 60;
+            const key = parseNote(params[0], 60) || 60;
+            const length = parseInt(params[1]) || 32;
             const tempo = parseInt(params[2]) || 120;
             sections[name] = {length, key, tempo, tracks: {}};
             currentSection = name;
@@ -111,7 +119,7 @@ function parseNotation(text) {
             const instrument = instrumentMap[(params[0] ?? '').toLowerCase()] ?? (parseInt(params[0]) || 0);
             const isPercussion = instrument === 128;
             const gain = isNaN(parseFloat(params[1])) ? 1 : parseFloat(params[1]);
-            const pan  = isNaN(parseFloat(params[2])) ? 0.5 : parseFloat(params[2]);
+            const pan  = isNaN(parseFloat(params[2])) ? 0 : parseFloat(params[2]);
             sections[currentSection].tracks[trackName] = {instrument, isPercussion, gain, pan, events: []};
         } 
         else if (!line.startsWith('-')) {
@@ -253,7 +261,7 @@ async function loadInstrument(programNumber, panValue = 0.5, isPercussion = fals
     showStatus(`Loading ${isPercussion ? 'percussion' : 'instrument ' + programNumber}...`);
     
     const panner = audioContext.createStereoPanner();
-    panner.pan.value = (panValue - 0.5) * 2;
+    panner.pan.value = panValue;
     panner.connect(audioContext.destination);
     
     try {
@@ -265,14 +273,14 @@ async function loadInstrument(programNumber, panValue = 0.5, isPercussion = fals
                 destination: panner
             });
         } else {
-            const instName = instrumentCodeNames[programNumber] || 'acoustic_grand_piano';
+            const instName = instrumentNames[programNumber]
+                .toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/).join('_');
             const meloUrl = `https://hikarimusic.github.io/MuseLab/FluidR3_GM/${instName}-mp3.js`;
             instrument = await Soundfont.instrument(audioContext, instName, {
                 nameToUrl: () => meloUrl,
                 destination: panner
             });
         }
-        
         instruments[key] = instrument;
         panners[key] = panner;
         return { instrument, panner };
@@ -695,7 +703,7 @@ document.querySelectorAll('.example-item').forEach(item => {
 
 function populateGuide() {
     const midiToInstrumentShortcut = {};
-    Object.entries(instrumentShortcuts).forEach(([shortcut, midi]) => {
+    Object.entries(instrumentMap).forEach(([shortcut, midi]) => {
         if (!midiToInstrumentShortcut[midi]) {
             midiToInstrumentShortcut[midi] = [];
         }
@@ -703,7 +711,8 @@ function populateGuide() {
     });
     
     const instrumentListEl = document.getElementById('instrumentList');
-    instrumentList.forEach((name, index) => {
+    Object.entries(instrumentNames).forEach(([index, name]) => {
+        index = Number(index);
         const shortcuts = midiToInstrumentShortcut[index];
         const p = document.createElement('p');
         if (shortcuts && shortcuts.length > 0) {
@@ -775,10 +784,10 @@ function populateGuide() {
 }
 
 // Initialize
-document.getElementById('notation').value = `a1: 16 d4 90
-- main: flute 1 .5
-- chord: strings1 .5 .5
-- drum: perc .5 .5
+document.getElementById('notation').value = `a1: d4 16 90
+- main: flute 1 0
+- chord: strings1 .5 0
+- drum: perc .5 0
 
 a1.main: 0
 - | .25 .25 .25 .25 | .5 .5 .25 .5 .75 .5 .25 .25 .25 .25 | .5 .5 .25 .5 .75 1.5 |
