@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MuseLab Web Composer</title>
+  <title>MuseLab</title>
   <script src="player.js"></script>
   <script src="data.js"></script>
   <link rel="stylesheet" href="style.css">
@@ -73,48 +73,57 @@
   <div id="guidePanel" class="side-panel">
     <h3>Notation Guide</h3>
     
-    <h4>1. Define Section</h4>
-    <p><code>section_name: beats key tempo</code></p>
-    <p class="example">c1: 64 g4 190 → Section "c1", 64 beats long, key of G4, 190 BPM</p>
-    
+    <h4>1. Add Section</h4>
+    <p><code>section: [key] [length] [tempo]</code></p>
+    <p><strong>section: </strong>section name</p>
+    <p><strong>key: </strong>actual key of c4 (default: c4)</p>
+    <p><strong>length: </strong>total length in beats (default: 32)</p>
+    <p><strong>tempo: </strong>section tempo in bpm (default: 120)</p>
+
     <h4>2. Add Track</h4>
-    <p><code>- track_name: instrument volume pan</code></p>
-    <p class="example">- vocal: violin 1 .5 → Track uses violin, full volume, centered</p>
-    <p class="example">- bass: abass 0.8 0.5 → Track uses acoustic bass (shortcut), 80% volume</p>
+    <p><code>- track: [instrument] [volume] [pan]</code></p>
+    <p><strong>track: </strong>track name</p>
+    <p><strong>instrument: </strong>inst name see reference (default: apiano)</p>
+    <p><strong>volume: </strong>track volume from 0 to 1 (default: 1)</p>
+    <p><strong>pan: </strong>track pan from -1 to 1 (default: 0)</p>
     
-    <h4>3. Set Track Start Time</h4>
-    <p><code>section.track: beats_offset</code></p>
-    <p class="example">c1.vocal: -4 → Vocal starts 4 beats before section begins</p>
-    <p class="example">c1.bass: 0 → Bass starts at section beginning</p>
+    <h4>3. Select Track</h4>
+    <p><code>section.track: [offset]</code></p>
+    <p><strong>section.track: </strong>track to write</p>
+    <p><strong>offset: </strong>offset in beats (default: 0)</p>
     
-    <h4>4. Define Rhythm</h4>
-    <p><code>- | durations |</code> (in beats)</p>
-    <p class="example">- | 1 1 2 | → Three notes: quarter, quarter, half</p>
-    <p class="example">- | 1.5 .5 1 1 | → Four notes with varying lengths</p>
-    
-    <h4>5. Define Melody</h4>
-    <p><code>- | notes |</code> (use note names, numbers, or shortcuts)</p>
-    <p class="example">- | c4 e4 g4 - | → C-E-G, then hold G (tie)</p>
-    <p class="example">- | . e4 d4 c4 | → Rest, then E-D-C</p>
-    <p class="example">- | c4-e4-g4 . | → C major chord, then rest</p>
-    
-    <h4>6. Add Lyrics (Optional)</h4>
-    <p><code>- | text |</code></p>
-    <p class="example">- | . ki mi ga | → Rest, then syllables for each note</p>
-    <br>
+    <h4>4. Write Rhythm</h4>
+    <p><code>- [duration] [duration] ...</code></p>
+    <p><strong>trigger: </strong>if first input is a number</p>
+    <p><strong>duration: </strong>note duration in beats (default: 1)</p>
+    <p><strong>measure: </strong>add measure line by "|"</p>
+
+    <h4>5. Write Melody</h4>
+    <p><code>- [note] [note] ...</code></p>
+    <p><strong>trigger: </strong>if first input is a letter+number</p>
+    <p><strong>note: </strong>note name see reference (default c4)</p>
+    <p><strong>percussion: </strong>percussion name see reference (default b)</p>
+    <p><strong>measure: </strong>add measure line by "|"</p>
+    <p><strong>rest: </strong>rest current note by "."</p>
+    <p><strong>extend: </strong>extend preceding note by "-"</p>
+    <p><strong>repeat: </strong>repeat preceding note by "="</p>
+    <p><strong>chord: </strong>connect multiple notes by "-"</p>
+    <p><strong>octave: </strong>inherit preceding note if omitted</p>
+
+
+    <h4>6. Write Lyrics</h4>
+    <p><code>- [text] [text] ...</code></p>
+    <p><strong>trigger: </strong>if neither rhythm nor melody</p>
     
     <h3>Instrument Reference</h3>
-    <p class="note-text">Use shortcut <code>apiano</code> or number <code>0</code> in track definition</p>
     <div id="instrumentList" class="code-list"></div>
     <br>
     
     <h3>Note Reference</h3>
-    <p class="note-text">Use note name <code>c4</code> or MIDI number <code>60</code> in melody</p>
     <div id="noteList" class="code-list"></div>
     <br>
     
     <h3>Percussion Reference</h3>
-    <p class="note-text">Requires instrument <code>perc</code> (128). Use shortcut <code>xb</code> or MIDI <code>36</code></p>
     <div id="percussionList" class="code-list"></div>
   </div>
 

@@ -31,9 +31,9 @@ function hideStatus() {
 }
 
 function parseNote(noteStr, key, isPercussion) {
-    if (!noteStr || noteStr === '.' || noteStr === '') return null;
     if (isPercussion) {
-        return percussionMap[noteStr.toLowerCase()] || 36;
+        if (!(noteStr.toLowerCase() in percussionMap)) return null;
+        return percussionMap[noteStr.toLowerCase()];
     }
     const match = noteStr.toLowerCase().match(/^([a-g][sb]?)(\d*)$/);
     if (!match) return null;
@@ -56,7 +56,7 @@ function buildEvents(track, start, slots, key) {
             showError(`Invalid duration "${slot.duration}" at beat ${time}`);
             return;
         }
-        const duration = parseFloat(slot.duration) || 0;
+        const duration = parseFloat(slot.duration);
         let notes = slot.notes;
         if (notes === '-') {
             if (lastEvent) lastEvent.duration += duration;
@@ -102,52 +102,77 @@ function parseNotation(text) {
     let currentSlots = null;
     for (const line of lines) {
         if (!line.startsWith('-') && !line.includes('.')) {
-            const [name, ...params] = line.split(/[\s:]+/).filter(p => p);
-            const key = parseNote(params[0], 60) || 60;
-            const length = parseInt(params[1]) || 32;
-            const tempo = parseInt(params[2]) || 120;
+            const [name, keyStr, lengthStr, tempoStr] = line.split(/[\s:]+/).filter(p => p);
+            if (keyStr !== undefined && !/^[a-g][sb]?\d*$/i.test(keyStr)) {
+                showError(`Invalid key "${keyStr}" in section "${name}"`);
+                break;
+            }
+            if (lengthStr !== undefined && !/^[1-9]\d*$/.test(lengthStr)) {
+                showError(`Invalid length "${lengthStr}" in section "${name}"`);
+                break;
+            }
+            if (tempoStr !== undefined && !/^[1-9]\d*$/.test(tempoStr)) {
+                showError(`Invalid tempo "${tempoStr}" in section "${name}"`);
+                break;
+            }
+            const key = parseNote(keyStr ?? 'c4', 60);
+            const length = parseFloat(lengthStr ?? 32);
+            const tempo = parseFloat(tempoStr ?? 120);
             sections[name] = {length, key, tempo, tracks: {}};
             currentSection = name;
             currentTrack = null;
         } 
         else if (line.startsWith('-') && !currentTrack) {
-            const [trackName, ...params] = line.substring(1).split(/[\s:]+/).filter(p => p);
+            const [name, instStr, gainStr, panStr] = line.substring(1).split(/[\s:]+/).filter(p => p);
             if (!sections[currentSection]) {
-                showError(`No section for track "${trackName}"`);
+                showError(`No section for track "${name}"`);
                 break;
             }
-            const instrument = instrumentMap[(params[0] ?? '').toLowerCase()] ?? (parseInt(params[0]) || 0);
+            if (instStr !== undefined && !(instStr.toLowerCase() in instrumentMap)) {
+                showError(`Invalid instrument "${instStr}" for track "${name}"`);
+                break;
+            }
+            if (gainStr !== undefined && !/^\d*\.?\d+$/.test(gainStr)) {
+                showError(`Invalid gain "${gainStr}" for track "${name}"`);
+                break;
+            }
+            if (panStr !== undefined && !/^-?\d*\.?\d+$/.test(panStr)) {
+                showError(`Invalid pan "${panStr}" for track "${name}"`);
+                break;
+            }
+            const instrument = instrumentMap[(instStr ?? 'apiano').toLowerCase()];
             const isPercussion = instrument === 128;
-            const gain = isNaN(parseFloat(params[1])) ? 1 : parseFloat(params[1]);
-            const pan  = isNaN(parseFloat(params[2])) ? 0 : parseFloat(params[2]);
-            sections[currentSection].tracks[trackName] = {instrument, isPercussion, gain, pan, events: []};
+            const gain = parseFloat(gainStr ?? 1);
+            const pan  = parseFloat(panStr ?? 0);
+            sections[currentSection].tracks[name] = {instrument, isPercussion, gain, pan, events: []};
         } 
         else if (!line.startsWith('-')) {
             const [trackPath, startStr] = line.split(/[\s:]+/).filter(t => t);
-            const [secName, trackName] = trackPath.split('.');
-            if (!sections[secName]?.tracks[trackName]) {
-                showError(`Track "${secName}.${trackName}" not found`);
+            const [secName, trkName] = trackPath.split('.');
+            if (!sections[secName]?.tracks[trkName]) {
+                showError(`Track "${secName}.${trkName}" not found`);
+                break;
+            }
+            if (startStr !== undefined && !/^-?\d*\.?\d+$/.test(startStr)) {
+                showError(`Invalid start "${startStr}" for track "${secName}.${trkName}"`);
                 break;
             }
             currentSection = secName;
-            currentTrack = trackName;
-            currentStart = parseFloat(startStr) || 0;
+            currentTrack = trkName;
+            currentStart = parseFloat(startStr ?? 0);
             currentSlots = [];
         } 
         else {
             const tokens = line.substring(1).split(/[\s|]+/).filter(t => t);
+            if (tokens.length === 0) continue;
             const section = sections[currentSection];
             const track = section.tracks[currentTrack];
-            if (tokens.length === 0) continue;
-            const isMarker = t => t === '.' || t === '-' || t === '=';
-            const isNumber = t => /^\d*\.?\d+$/.test(t);
-            const isNote = t => /^[a-g][sb]?\d$/i.test(t.split('-')[0]);
-            const first = tokens.find(t => !isMarker(t)) ?? tokens[0];
+            const first = tokens.find(t => t !== '.' && t !== '-' && t != '=') ?? tokens[0];
             let field;
-            if (isNumber(first)) {
+            if (/^\d*\.?\d+$/.test(first)) {
                 field = 'duration';
             } 
-            else if (isNote(first) || track.isPercussion) {
+            else if (/^[a-g][sb]?\d$/i.test(first.split('-')[0]) || track.isPercussion) {
                 field = 'notes';
             } 
             else {
@@ -784,7 +809,7 @@ function populateGuide() {
 }
 
 // Initialize
-document.getElementById('notation').value = `a1: d4 16 90
+document.getElementById('notation').value = `a1: d4 10 90
 - main: flute 1 0
 - chord: strings1 .5 0
 - drum: perc .5 0

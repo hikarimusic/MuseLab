@@ -8,7 +8,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   background: #1e1e1e;
   color: #cccccc;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -383,9 +383,4 @@ textarea::-webkit-scrollbar-thumb:hover {
 .midi-num {
   color: #6a6a6a;
   font-size: 0.75rem;
-}
-
-.example {
-  color: #999;
-  font-style: italic;
 }

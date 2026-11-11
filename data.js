@@ -153,12 +153,12 @@ const instrumentMap = {
     bpiano:    1,   // Bright Acoustic Piano
     epiano:    2,   // Electric Grand Piano
     hpiano:    3,   // Honkytonk Piano
-    ep1:       4,   // Electric Piano 1
-    ep2:       5,   // Electric Piano 2
+    epiano1:   4,   // Electric Piano 1
+    epiano2:   5,   // Electric Piano 2
     harpsi:    6,   // Harpsichord
-    clavi:     7,   // Clavinet
+    clavinet:  7,   // Clavinet
     celesta:   8,   // Celesta
-    glock:     9,   // Glockenspiel
+    glocken:   9,   // Glockenspiel
     mbox:      10,  // Music Box
     vibes:     11,  // Vibraphone
     marimba:   12,  // Marimba
