@@ -95,21 +95,20 @@
     <h4>4. Write Rhythm</h4>
     <p><code>- [duration] [duration] ...</code></p>
     <p><strong>trigger: </strong>if first input is a number</p>
-    <p><strong>duration: </strong>note duration in beats (default: 1)</p>
+    <p><strong>duration: </strong>pitch duration in beats (default: 1)</p>
     <p><strong>measure: </strong>add measure line by "|"</p>
 
     <h4>5. Write Melody</h4>
-    <p><code>- [note] [note] ...</code></p>
+    <p><code>- [pitch] [pitch] ...</code></p>
     <p><strong>trigger: </strong>if first input is a letter+number</p>
-    <p><strong>note: </strong>note name see reference (default c4)</p>
+    <p><strong>pitch: </strong>pitch name see reference (default c4)</p>
     <p><strong>percussion: </strong>percussion name see reference (default b)</p>
+    <p><strong>rest: </strong>rest current pitch by "."</p>
+    <p><strong>extend: </strong>extend preceding pitch by "-"</p>
+    <p><strong>repeat: </strong>repeat preceding pitch by "="</p>
+    <p><strong>chord: </strong>connect multiple pitches by "-"</p>
+    <p><strong>octave: </strong>inherit preceding octave if omitted</p>
     <p><strong>measure: </strong>add measure line by "|"</p>
-    <p><strong>rest: </strong>rest current note by "."</p>
-    <p><strong>extend: </strong>extend preceding note by "-"</p>
-    <p><strong>repeat: </strong>repeat preceding note by "="</p>
-    <p><strong>chord: </strong>connect multiple notes by "-"</p>
-    <p><strong>octave: </strong>inherit preceding note if omitted</p>
-
 
     <h4>6. Write Lyrics</h4>
     <p><code>- [text] [text] ...</code></p>
@@ -119,8 +118,8 @@
     <div id="instrumentList" class="code-list"></div>
     <br>
     
-    <h3>Note Reference</h3>
-    <div id="noteList" class="code-list"></div>
+    <h3>Pitch Reference</h3>
+    <div id="pitchList" class="code-list"></div>
     <br>
     
     <h3>Percussion Reference</h3>

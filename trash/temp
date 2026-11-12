@@ -1,11 +1,11 @@
-a1: d4 16 90
-- main: epiano1 1 0
+a1: d4 10 90
+- main: abass 1 0
 - chord: strings1 .2 0
 - drum: perc .2 0
 
 a1.main: 0
 - | .25 .25 .25 .25 | .5 .5 .25 .5 .75 .5 .25 .25 .25 .25 | .5 .5 .25 .5 .75 1.5 |
-- |  f5  e5  d5  c5 | g5 g5  g5 a5  g5  .  f5  e5  d5  c5 | d5 d5  d5  e5 e5   . |
+- |  f2  e  d  c | g g  g a  g  .  f  e  d  c | d d  d  e e   . |
 a1.chord: 1
 - |         2             2 |           2           2 |
 - | a2-a3-c4-e4 f2-f3-a3-c4 | g2-g3-b3-d4 c3-g3-c4-e4 |

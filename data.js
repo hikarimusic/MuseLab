@@ -1,4 +1,4 @@
-const noteMap = {
+const pitchMap = {
     c:  0,  // C
     cs: 1,  // C#
     db: 1,  // Db
@@ -168,8 +168,8 @@ const instrumentMap = {
     organ1:    16,  // Drawbar Organ
     organ2:    17,  // Percussive Organ
     organ3:    18,  // Rock Organ
-    church:    19,  // Church Organ
-    reed:      20,  // Reed Organ
+    organ4:    19,  // Church Organ
+    organ5:    20,  // Reed Organ
     accord:    21,  // Accordion
     harmon:    22,  // Harmonica
     tango:     23,  // Tango Accordion
@@ -178,8 +178,8 @@ const instrumentMap = {
     eguitj:    26,  // Electric Guitar (Jazz)
     eguitc:    27,  // Electric Guitar (Clean)
     eguitm:    28,  // Electric Guitar (Muted)
-    oguitar:   29,  // Overdriven Guitar
-    dguitar:   30,  // Distortion Guitar
+    oguit:     29,  // Overdriven Guitar
+    dguit:     30,  // Distortion Guitar
     gharm:     31,  // Guitar Harmonics
     abass:     32,  // Acoustic Bass
     ebassf:    33,  // Electric Bass (Finger)
@@ -193,20 +193,20 @@ const instrumentMap = {
     viola:     41,  // Viola
     cello:     42,  // Cello
     contra:    43,  // Contrabass
-    tremolo:   44,  // Tremolo Strings
+    trem:      44,  // Tremolo Strings
     pizz:      45,  // Pizzicato Strings
     harp:      46,  // Orchestral Harp
-    timp:      47,  // Timpani
+    timpani:   47,  // Timpani
     strings1:  48,  // String Ensemble 1
     strings2:  49,  // String Ensemble 2
-    sstrings1: 50,  // Synth Strings 1
-    sstrings2: 51,  // Synth Strings 2
+    sstrings1:  50,  // Synth Strings 1
+    sstrings2:  51,  // Synth Strings 2
     choir:     52,  // Choir Aahs
-    oohs:      53,  // Voice Oohs
+    voice:     53,  // Voice Oohs
     schoir:    54,  // Synth Choir
     ohit:      55,  // Orchestra Hit
     trumpet:   56,  // Trumpet
-    tbone:     57,  // Trombone
+    trombone:  57,  // Trombone
     tuba:      58,  // Tuba
     mtrumpet:  59,  // Muted Trumpet
     fhorn:     60,  // French Horn
@@ -224,19 +224,19 @@ const instrumentMap = {
     piccolo:   72,  // Piccolo
     flute:     73,  // Flute
     recorder:  74,  // Recorder
-    pan:       75,  // Pan Flute
+    panflute:  75,  // Pan Flute
     bottle:    76,  // Blown Bottle
     shaku:     77,  // Shakuhachi
     whistle:   78,  // Whistle
     ocarina:   79,  // Ocarina
-    square:    80,  // Lead 1 (Square)
-    saw:       81,  // Lead 2 (Sawtooth)
-    calliope:  82,  // Lead 3 (Calliope)
-    chiff:     83,  // Lead 4 (Chiff)
-    charang:   84,  // Lead 5 (Charang)
-    voice:     85,  // Lead 6 (Voice)
-    fifths:    86,  // Lead 7 (Fifths)
-    basslead:  87,  // Lead 8 (Bass + Lead)
+    lead1:     80,  // Lead 1 (Square)
+    lead2:     81,  // Lead 2 (Sawtooth)
+    lead3:     82,  // Lead 3 (Calliope)
+    lead4:     83,  // Lead 4 (Chiff)
+    lead5:     84,  // Lead 5 (Charang)
+    lead6:     85,  // Lead 6 (Voice)
+    lead7:     86,  // Lead 7 (Fifths)
+    lead8:     87,  // Lead 8 (Bass + Lead)
     pad1:      88,  // Pad 1 (New Age)
     pad2:      89,  // Pad 2 (Warm)
     pad3:      90,  // Pad 3 (Polysynth)
@@ -245,14 +245,14 @@ const instrumentMap = {
     pad6:      93,  // Pad 6 (Metallic)
     pad7:      94,  // Pad 7 (Halo)
     pad8:      95,  // Pad 8 (Sweep)
-    rain:      96,  // FX 1 (Rain)
-    sound:     97,  // FX 2 (Soundtrack)
-    crystal:   98,  // FX 3 (Crystal)
-    atmos:     99,  // FX 4 (Atmosphere)
-    bright:    100, // FX 5 (Brightness)
-    goblins:   101, // FX 6 (Goblins)
-    echoes:    102, // FX 7 (Echoes)
-    scifi:     103, // FX 8 (Sci-Fi)
+    fx1:       96,  // FX 1 (Rain)
+    fx2:       97,  // FX 2 (Soundtrack)
+    fx3:       98,  // FX 3 (Crystal)
+    fx4:       99,  // FX 4 (Atmosphere)
+    fx5:       100, // FX 5 (Brightness)
+    fx6:       101, // FX 6 (Goblins)
+    fx7:       102, // FX 7 (Echoes)
+    fx8:       103, // FX 8 (Sci-Fi)
     sitar:     104, // Sitar
     banjo:     105, // Banjo
     shamisen:  106, // Shamisen

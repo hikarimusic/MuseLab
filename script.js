@@ -30,22 +30,22 @@ function hideStatus() {
     document.getElementById('status').classList.remove('visible');
 }
 
-function parseNote(noteStr, key, isPercussion) {
+function parsePitch(pitchStr, key, isPercussion) {
     if (isPercussion) {
-        if (!(noteStr.toLowerCase() in percussionMap)) return null;
-        return percussionMap[noteStr.toLowerCase()];
+        if (!(pitchStr.toLowerCase() in percussionMap)) return null;
+        return percussionMap[pitchStr.toLowerCase()];
     }
-    const match = noteStr.toLowerCase().match(/^([a-g][sb]?)(\d*)$/);
+    const match = pitchStr.toLowerCase().match(/^([a-g][sb]?)(\d*)$/);
     if (!match) return null;
-    const [, note, octave] = match;
-    const midiNote = (parseInt(octave || '4') + 1) * 12 + noteMap[note];
-    return midiNote - 60 + key;
+    const [, pitch, octave] = match;
+    const midiPitch = (parseInt(octave || '4') + 1) * 12 + pitchMap[pitch];
+    return midiPitch - 60 + key;
 }
 
 function buildEvents(track, start, slots, key) {
     let time = start;
     let lastEvent = null;
-    let lastNotes = null;
+    let lastPitches = null;
     let lastOctave = '4';
     const overlaps = e => e.time + e.duration > start;
     while (track.events.length && overlaps(track.events.at(-1))) {
@@ -57,37 +57,37 @@ function buildEvents(track, start, slots, key) {
             return;
         }
         const duration = parseFloat(slot.duration);
-        let notes = slot.notes;
-        if (notes === '-') {
+        let pitches = slot.pitches;
+        if (pitches === '-') {
             if (lastEvent) lastEvent.duration += duration;
-            notes = null;
+            pitches = null;
         }
-        else if (notes === '=') {
-            notes = lastNotes;
+        else if (pitches === '=') {
+            pitches = lastPitches;
         }
-        else if (notes === '.') {
-            notes = null;
+        else if (pitches === '.') {
+            pitches = null;
         }
         else {
-            notes = notes.split('-').map(n => {
+            pitches = pitches.split('-').map(n => {
                 if (!track.isPercussion) {
                     const octave = n.match(/\d+$/)?.[0];
                     if (octave) lastOctave = octave;
                     else n += lastOctave;
                 }
-                return parseNote(n, key, track.isPercussion);
+                return parsePitch(n, key, track.isPercussion);
             });
-            if (notes.includes(null)) {
-                showError(`Invalid note "${slot.notes}" at beat ${time}`);
-                notes = null;
+            if (pitches.includes(null)) {
+                showError(`Invalid pitch "${slot.pitches}" at beat ${time}`);
+                pitches = null;
             }
         }
         const lyric = slot.lyric === '.' ? null : slot.lyric;
-        if (duration > 0 && notes?.length) {
-            const event = {time, duration, notes, lyric};
+        if (duration > 0 && pitches?.length) {
+            const event = {time, duration, pitches, lyric};
             track.events.push(event);
             lastEvent = event;
-            lastNotes = notes;
+            lastPitches = pitches;
         }
         time += duration;
     });
@@ -115,7 +115,7 @@ function parseNotation(text) {
                 showError(`Invalid tempo "${tempoStr}" in section "${name}"`);
                 break;
             }
-            const key = parseNote(keyStr ?? 'c4', 60);
+            const key = parsePitch(keyStr ?? 'c4', 60);
             const length = parseFloat(lengthStr ?? 32);
             const tempo = parseFloat(tempoStr ?? 120);
             sections[name] = {length, key, tempo, tracks: {}};
@@ -173,16 +173,16 @@ function parseNotation(text) {
                 field = 'duration';
             } 
             else if (/^[a-g][sb]?\d$/i.test(first.split('-')[0]) || track.isPercussion) {
-                field = 'notes';
+                field = 'pitches';
             } 
             else {
                 field = 'lyric';
             }
             if (currentSlots.length === 0) {
                 const duration = '1';
-                const notes = track.isPercussion ? 'b' : 'c4';
+                const pitches = track.isPercussion ? 'b' : 'c4';
                 const lyric = null;
-                currentSlots = tokens.map(() => ({ duration, notes, lyric}));
+                currentSlots = tokens.map(() => ({ duration, pitches, lyric}));
             }
             tokens.slice(0, currentSlots.length).forEach((t, i) => {
                 currentSlots[i][field] = t;
@@ -283,7 +283,7 @@ async function loadInstrument(programNumber, panValue = 0.5, isPercussion = fals
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    showStatus(`Loading ${isPercussion ? 'percussion' : 'instrument ' + programNumber}...`);
+    showStatus(`Loading ${instrumentNames[programNumber]}...`);
     
     const panner = audioContext.createStereoPanner();
     panner.pan.value = panValue;
@@ -407,8 +407,8 @@ async function play() {
                     
                     const timeout = setTimeout(() => {
                         if (isPlaying) {
-                            event.notes.forEach(note => {
-                                instrument.play(note, audioContext.currentTime, { duration, gain: track.gain });
+                            event.pitches.forEach(pitch => {
+                                instrument.play(pitch, audioContext.currentTime, { duration, gain: track.gain });
                             });
                         }
                     }, startTimeSec * 1000);
@@ -565,7 +565,7 @@ function buildMidi(sections) {
             if (!track.isPercussion) {
                 events.push({tick: sectionTick, order: 0, bytes: [0xc0 | channel, clamp(track.instrument | 0, 0, 127)]});
             }
-            events.push({tick: sectionTick, order: 0, bytes: [0xb0 | channel, 10, clamp(Math.round(track.pan * 127), 0, 127)]});
+            events.push({tick: sectionTick, order: 0, bytes: [0xb0 | channel, 10, clamp(Math.round((track.pan + 1) * 63.5), 0, 127)]});
 
             const velocity = clamp(Math.round((isNaN(track.gain) ? 1 : track.gain) * 100), 1, 127);
             track.events.forEach(e => {
@@ -575,10 +575,10 @@ function buildMidi(sections) {
                 if (e.lyric) {
                     events.push({tick: on, order: 2, bytes: metaEvent(0x05, [...enc.encode(e.lyric)])});
                 }
-                e.notes.forEach(n => {
-                    const note = clamp(n, 0, 127);
-                    events.push({tick: on, order: 3, bytes: [0x90 | channel, note, velocity]});
-                    events.push({tick: off, order: 1, bytes: [0x80 | channel, note, 0]});
+                e.pitches.forEach(n => {
+                    const pitch = clamp(n, 0, 127);
+                    events.push({tick: on, order: 3, bytes: [0x90 | channel, pitch, velocity]});
+                    events.push({tick: off, order: 1, bytes: [0x80 | channel, pitch, 0]});
                 });
             });
         });
@@ -749,8 +749,8 @@ function populateGuide() {
         instrumentListEl.appendChild(p);
     });
     
-    const noteListEl = document.getElementById('noteList');
-    const noteSequence = [
+    const pitchListEl = document.getElementById('pitchList');
+    const pitchSequence = [
         { names: ['c'], display: 'C', offset: 0 },
         { names: ['cs', 'db'], display: ['C#', 'Db'], offset: 1 },
         { names: ['d'], display: 'D', offset: 2 },
@@ -766,21 +766,21 @@ function populateGuide() {
     ];
     
     for (let octave = 0; octave <= 8; octave++) {
-        noteSequence.forEach(noteInfo => {
-            const midiNum = (octave + 1) * 12 + noteInfo.offset;
+        pitchSequence.forEach(pitchInfo => {
+            const midiNum = (octave + 1) * 12 + pitchInfo.offset;
             if (midiNum <= 127) {
-                if (Array.isArray(noteInfo.display)) {
+                if (Array.isArray(pitchInfo.display)) {
                     // Show both sharp and flat on separate lines
-                    noteInfo.names.forEach((noteName, idx) => {
+                    pitchInfo.names.forEach((pitchName, idx) => {
                         const p = document.createElement('p');
-                        p.innerHTML = `${noteInfo.display[idx]}${octave}: <code>${noteName}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
-                        noteListEl.appendChild(p);
+                        p.innerHTML = `${pitchInfo.display[idx]}${octave}: <code>${pitchName}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
+                        pitchListEl.appendChild(p);
                     });
                 } else {
-                    // Single note name
+                    // Single pitch name
                     const p = document.createElement('p');
-                    p.innerHTML = `${noteInfo.display}${octave}: <code>${noteInfo.names[0]}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
-                    noteListEl.appendChild(p);
+                    p.innerHTML = `${pitchInfo.display}${octave}: <code>${pitchInfo.names[0]}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
+                    pitchListEl.appendChild(p);
                 }
             }
         });
