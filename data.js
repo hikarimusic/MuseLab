@@ -19,68 +19,67 @@ const pitchMap = {
 };
 
 const percussionMap = {
-    x:    26, // Silence
-    hq:   27, // High-Q
-    sl:   28, // Slap
-    sp:   29, // Scratch Push
-    spl:  30, // Scratch Pull
-    st:   31, // Sticks
-    sq:   32, // Square Click
-    mc:   33, // Metronome Click
-    mb:   34, // Metronome Bell
-    bd:   35, // Acoustic Bass Drum
-    b:    36, // Bass Drum
-    ss:   37, // Side Stick
-    s:    38, // Acoustic Snare
-    hcl:  39, // Hand Clap
-    se:   40, // Electric Snare
-    tlf:  41, // Low Floor Tom
-    hc:   42, // Closed Hi Hat
-    thf:  43, // High Floor Tom
-    hp:   44, // Pedal Hi-Hat
-    tl:   45, // Low Tom
-    h:    46, // Open Hi-Hat
-    tlm:  47, // Low-Mid Tom
-    thm:  48, // Hi-Mid Tom
-    c1:   49, // Crash Cymbal 1
-    th:   50, // High Tom
-    r1:   51, // Ride Cymbal 1
-    cc:   52, // Chinese Cymbal
-    rb:   53, // Ride Bell
-    tb:   54, // Tambourine
-    sc:   55, // Splash Cymbal
-    cw:   56, // Cowbell
-    c2:   57, // Crash Cymbal 2
-    vs:   58, // Vibraslap
-    r2:   59, // Ride Cymbal 2
-    bh:   60, // Hi Bongo
-    bl:   61, // Low Bongo
-    chm:  62, // Mute Hi Conga
-    cho:  63, // Open Hi Conga
-    cl:   64, // Low Conga
-    tih:  65, // High Timbale
-    til:  66, // Low Timbale
-    agh:  67, // High Agogo
-    agl:  68, // Low Agogo
-    cab:  69, // Cabasa
-    mar:  70, // Maracas
-    ws:   71, // Short Whistle
-    wl:   72, // Long Whistle
-    gs:   73, // Short Guiro
-    gl:   74, // Long Guiro
-    cla:  75, // Claves
-    wbh:  76, // Hi Wood Block
-    wbl:  77, // Low Wood Block
-    cum:  78, // Mute Cuica
-    cuo:  79, // Open Cuica
-    tm:   80, // Mute Triangle
-    to:   81, // Open Triangle
-    sh:   82, // Shaker
-    jb:   83, // Jingle Bell
-    bt:   84, // Bell Tree
-    cast: 85, // Castanets
-    sm:   86, // Mute Surdo
-    so:   87  // Open Surdo
+    hq:  27, // High-Q
+    sl:  28, // Slap
+    sc1: 29, // Scratch Push
+    sc2: 30, // Scratch Pull
+    st:  31, // Sticks
+    sq:  32, // Square Click
+    mc:  33, // Metronome Click
+    mb:  34, // Metronome Bell
+    ba:  35, // Acoustic Bass Drum
+    b:   36, // Bass Drum
+    ss:  37, // Side Stick
+    s:   38, // Acoustic Snare
+    cl:  39, // Hand Clap
+    se:  40, // Electric Snare
+    tfl: 41, // Low Floor Tom
+    h:   42, // Closed Hi-Hat
+    tfh: 43, // High Floor Tom
+    hp:  44, // Pedal Hi-Hat
+    tl:  45, // Low Tom
+    ho:  46, // Open Hi-Hat
+    tml: 47, // Low-Mid Tom
+    tmh: 48, // Hi-Mid Tom
+    c1:  49, // Crash Cymbal 1
+    th:  50, // High Tom
+    r1:  51, // Ride Cymbal 1
+    cc:  52, // Chinese Cymbal
+    rb:  53, // Ride Bell
+    tb:  54, // Tambourine
+    sp:  55, // Splash Cymbal
+    cb:  56, // Cowbell
+    c2:  57, // Crash Cymbal 2
+    vs:  58, // Vibraslap
+    r2:  59, // Ride Cymbal 2
+    bh:  60, // Hi Bongo
+    bl:  61, // Low Bongo
+    chm: 62, // Mute Hi Conga
+    cho: 63, // Open Hi Conga
+    clo: 64, // Low Conga
+    tbh: 65, // High Timbale
+    tbl: 66, // Low Timbale
+    agh: 67, // High Agogo
+    agl: 68, // Low Agogo
+    cab: 69, // Cabasa
+    mar: 70, // Maracas
+    ws:  71, // Short Whistle
+    wl:  72, // Long Whistle
+    gs:  73, // Short Guiro
+    gl:  74, // Long Guiro
+    cla: 75, // Claves
+    wbh: 76, // Hi Wood Block
+    wbl: 77, // Low Wood Block
+    cum: 78, // Mute Cuica
+    cuo: 79, // Open Cuica
+    tm:  80, // Mute Triangle
+    to:  81, // Open Triangle
+    sh:  82, // Shaker
+    jb:  83, // Jingle Bell
+    bt:  84, // Bell Tree
+    ca:  85, // Castanets
+    sm:  86, // Mute Surdo
+    so:  87  // Open Surdo
 };
 
 const percussionNames = {
@@ -100,7 +99,7 @@ const percussionNames = {
     39: "Hand Clap",
     40: "Electric Snare",
     41: "Low Floor Tom",
-    42: "Closed Hi Hat",
+    42: "Closed Hi-Hat",
     43: "High Floor Tom",
     44: "Pedal Hi-Hat",
     45: "Low Tom",
@@ -199,8 +198,8 @@ const instrumentMap = {
     timpani:   47,  // Timpani
     strings1:  48,  // String Ensemble 1
     strings2:  49,  // String Ensemble 2
-    sstrings1:  50,  // Synth Strings 1
-    sstrings2:  51,  // Synth Strings 2
+    sstrings1: 50,  // Synth Strings 1
+    sstrings2: 51,  // Synth Strings 2
     choir:     52,  // Choir Aahs
     voice:     53,  // Voice Oohs
     schoir:    54,  // Synth Choir

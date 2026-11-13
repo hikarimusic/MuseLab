@@ -69,13 +69,22 @@ function buildEvents(track, start, slots, key) {
             pitches = null;
         }
         else {
-            pitches = pitches.split('-').map(n => {
-                if (!track.isPercussion) {
-                    const octave = n.match(/\d+$/)?.[0];
+            let prev = null;
+            pitches = pitches.split('-').map((n, i) => {
+                if (track.isPercussion) return parsePitch(n, key, true);
+                const octave = n.match(/\d+$/)?.[0];
+                if (i === 0) {
                     if (octave) lastOctave = octave;
                     else n += lastOctave;
                 }
-                return parsePitch(n, key, track.isPercussion);
+                else if (!octave && prev !== null) {
+                    let p = parsePitch(n + '0', key);
+                    if (p !== null)  {
+                        while (p <= prev) p += 12;
+                    }
+                    return prev = p;
+                }
+                return prev = parsePitch(n, key);
             });
             if (pitches.includes(null)) {
                 showError(`Invalid pitch "${slot.pitches}" at beat ${time}`);
@@ -816,10 +825,10 @@ document.getElementById('notation').value = `a1: d4 10 90
 
 a1.main: 0
 - | .25 .25 .25 .25 | .5 .5 .25 .5 .75 .5 .25 .25 .25 .25 | .5 .5 .25 .5 .75 1.5 |
-- |  f5  e5  d5  c5 | g5 g5  g5 a5  g5  .  f5  e5  d5  c5 | d5 d5  d5  e5 e5   . |
+- |  f5   e   d   c |  g  g   g  a   g  .   f   e   d   c |  d  d   d  e   e   . |
 a1.chord: 1
-- |         2             2 |           2           2 |
-- | a2-a3-c4-e4 f2-f3-a3-c4 | g2-g3-b3-d4 c3-g3-c4-e4 |
+- |        2        2 |        2        2 |
+- | a2-a-c-e f2-f-a-c | g2-g-b-d c3-g-c-e |
 a1.drum: 1
 - | 1 1 .5 .5 1 | 1 1 .5 .5 1 |
 - | b s  b  b s | b s  b  b s |`;
