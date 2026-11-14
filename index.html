@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MuseLab</title>
-  <script src="player.js"></script>
-  <script src="data.js"></script>
+  <script src="player.js" defer></script>
+  <script src="data.js" defer></script>
+  <script src="script.js" defer></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="topbar">
+  <div class="top-bar">
     <div class="logo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 18V5l12-2v13"></path>
@@ -18,7 +19,6 @@
       </svg>
       MuseLab
     </div>
-    
     <div class="controls">
       <button id="exampleBtn" title="Examples (Ctrl+E)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -31,7 +31,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/>
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-          <line x1="12" y1="17" x2="12.01" y2="17"/>
+          <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>
         </svg>
         Guide
       </button>
@@ -43,13 +43,13 @@
         </svg>
         Save
       </button>
-      <button id="playBtn" class="btn-play" title="Play (Ctrl+Enter)">
+      <button id="playBtn" class="play-btn" title="Play (Ctrl+Enter)">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <path d="M8 5v14l11-7z"/>
         </svg>
         Play
       </button>
-      <button id="stopBtn" class="btn-stop" style="display: none;" title="Stop (Ctrl+Enter)">
+      <button id="stopBtn" class="stop-btn" style="display: none;" title="Stop (Ctrl+Enter)">
         <svg viewBox="0 0 24 24" fill="currentColor">
           <rect x="6" y="6" width="12" height="12"/>
         </svg>
@@ -57,50 +57,53 @@
       </button>
     </div>
   </div>
-
-  <!-- NEW: Timeline ruler -->
   <div id="timeline" class="timeline">
     <div id="timelineRuler" class="timeline-ruler"></div>
     <div id="timelineSections" class="timeline-sections"></div>
   </div>
-
   <div class="editor-container">
     <div id="status" class="status-bar"></div>
     <div id="error" class="error-bar"></div>
-    <textarea id="notation" spellcheck="false" placeholder="Enter your composition here..."></textarea>
+    <textarea id="notation" spellcheck="false" placeholder="Start composing..."></textarea>
   </div>
-
+  <div id="examplePanel" class="side-panel">
+    <h3>Examples</h3>
+    <div id="exampleList" class="example-list">
+      <div class="example-item" data-file="examples/打上花火.txt">
+        <div class="example-name">打上花火</div>
+        <div class="example-desc">米津玄師</div>
+      </div>
+    </div>
+  </div>
   <div id="guidePanel" class="side-panel">
-    <h3>Notation Guide</h3>
-    
+    <h3>Notation</h3>
     <h4>1. Add Section</h4>
-    <p><code>section: [key] [length] [tempo]</code></p>
+    <p><code>section: [length] [tempo] [key]</code></p>
     <p><strong>section: </strong>section name</p>
-    <p><strong>key: </strong>actual key of c4 (default: c4)</p>
     <p><strong>length: </strong>total length in beats (default: 32)</p>
     <p><strong>tempo: </strong>section tempo in bpm (default: 120)</p>
-
+    <p><strong>key: </strong>actual key of c4 (default: c4)</p>
+    <p><strong>inherit: </strong>inherit last section settings if omitted</p>
     <h4>2. Add Track</h4>
     <p><code>- track: [instrument] [volume] [pan]</code></p>
     <p><strong>track: </strong>track name</p>
     <p><strong>instrument: </strong>inst name see reference (default: apiano)</p>
     <p><strong>volume: </strong>track volume from 0 to 1 (default: 1)</p>
     <p><strong>pan: </strong>track pan from -1 to 1 (default: 0)</p>
-    
+    <p><strong>solo: </strong>solo track by adding 's' to volume</p>
     <h4>3. Select Track</h4>
     <p><code>section.track: [offset]</code></p>
     <p><strong>section.track: </strong>track to write</p>
-    <p><strong>offset: </strong>offset in beats (default: 0)</p>
-    
+    <p><strong>offset: </strong>start time in beats (default: 0)</p>
+    <p><strong>ahead: </strong>start before section head by negative offset</p>
     <h4>4. Write Rhythm</h4>
     <p><code>- [duration] [duration] ...</code></p>
-    <p><strong>trigger: </strong>if first input is number</p>
+    <p><strong>trigger: </strong>if first input is a number</p>
     <p><strong>duration: </strong>note duration in beats (default: 1)</p>
     <p><strong>measure: </strong>add measure line by "|"</p>
-
     <h4>5. Write Melody</h4>
     <p><code>- [pitch] [pitch] ...</code></p>
-    <p><strong>trigger: </strong>if first input is letters+number</p>
+    <p><strong>trigger: </strong>if first input is a letter+number</p>
     <p><strong>pitch: </strong>pitch name see reference (default c4)</p>
     <p><strong>octave: </strong>inherit preceding octave if number omitted</p>
     <p><strong>chord: </strong>simultaneous multiple pitches if connected by "-"</p>
@@ -110,35 +113,22 @@
     <p><strong>extend: </strong>extend preceding note by "-"</p>
     <p><strong>repeat: </strong>repeat preceding note by "="</p>
     <p><strong>measure: </strong>add measure line by "|"</p>
-
     <h4>6. Write Lyrics</h4>
     <p><code>- [text] [text] ...</code></p>
-    <p><strong>trigger: </strong>if first input is letters</p>
+    <p><strong>trigger: </strong>if not writing rhythm or melody</p>
     <p><strong>rest: </strong>rest current note by "."</p>
     <p><strong>measure: </strong>add measure line by "|"</p>
-    
-    <h3>Instrument Reference</h3>
+    <h4>7. Write Comment</h4>
+    <p><code>// [comment] ...</code></p>
+    <h3>Reference</h3>
+    <h4>Instrument</h4>
     <div id="instrumentList" class="code-list"></div>
     <br>
-    
-    <h3>Pitch Reference</h3>
+    <h4>Pitch</h4>
     <div id="pitchList" class="code-list"></div>
     <br>
-    
-    <h3>Percussion Reference</h3>
+    <h4>Percussion</h4>
     <div id="percussionList" class="code-list"></div>
   </div>
-
-  <div id="examplePanel" class="side-panel">
-    <h3>Examples</h3>
-    <div id="exampleList" class="example-list">
-      <div class="example-item" data-file="examples/打上花火.txt">
-        <div class="example-name">打上花火</div>
-        <div class="example-desc">DAOKO×米津玄師</div>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
 </body>
 </html>

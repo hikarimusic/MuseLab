@@ -1,5 +1,29 @@
-a1
-- drum: perc
+i1: 32 98 gb3
+- piano1: apiano 1
+- piano2: apiano .5
+- guitar1: eguitc .5 .6
+- guitar2: eguitc .5 -.6
+- pad: epiano .5
 
-a1.drum
-- b b b b
+i1.piano1: 0
+- | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
+- | d6  e  g  c  d  e  g  c |  d  e  g  a  d  e a5 c6 | d6  e  g  c  d  e  g  c |  d  e  g  a  d  e a5 c6 |
+i1.piano2: 0
+- |  2.5  1.5 |  2.5  1.5 |  2.5  1.5 |  2.5  1.5 |
+- | f4-c g4-d | a4-e c3-g | f4-c g4-d | a4-e c4-g |
+i1.guitar1: 12
+- | 2.5 1.5 |
+- |   .  g5 |
+
+i1.piano1: 16
+- | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
+- | d5  e  g  c  d  e  g  c |  d  e  g  c  d  e  g  c |  d  e  g  c  d  e  g  c |  d  e  g  c  d  e  g  e |
+i1.piano2: 16
+- |  2.5  1.5 |  2.5  1.5 |  2.5  1.5 |  2.5  1.5 |
+- | f3-c g3-d | a3-e c4-g | f3-c g3-d | a3-e c4-g |
+i1.guitar2: 20
+- | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
+- | d5  d  d  d  d  d  d  d |  e  e  e  e  e  e  e  e |  d  d  d  d  d  d  d  d |
+i1.pad: 16
+- | 2.5 1.5 |  4 | 2.5 1.5 |  4 |
+- |  c4  b3 | a3 |  c4  b3 | a3 |

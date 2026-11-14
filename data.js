@@ -18,7 +18,7 @@ const pitchMap = {
     b:  11  // B
 };
 
-const percussionMap = {
+const percMap = {
     hq:  27, // High-Q
     sl:  28, // Slap
     sc1: 29, // Scratch Push
@@ -82,8 +82,7 @@ const percussionMap = {
     so:  87  // Open Surdo
 };
 
-const percussionNames = {
-    26: "Silence",
+const percNames = {
     27: "High-Q",
     28: "Slap",
     29: "Scratch Push",
@@ -147,7 +146,7 @@ const percussionNames = {
     87: "Open Surdo"
 };
 
-const instrumentMap = {
+const instMap = {
     apiano:    0,   // Acoustic Grand Piano
     bpiano:    1,   // Bright Acoustic Piano
     epiano:    2,   // Electric Grand Piano
@@ -279,7 +278,7 @@ const instrumentMap = {
     perc:      128  // Percussion
 };
 
-const instrumentNames = {
+const instNames = {
     0: "Acoustic Grand Piano",
     1: "Bright Acoustic Piano",
     2: "Electric Grand Piano",

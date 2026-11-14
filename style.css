@@ -14,7 +14,7 @@ body {
   flex-direction: column;
 }
 
-.topbar {
+.top-bar {
   background: #2d2d30;
   border-bottom: 1px solid #3e3e42;
   display: flex;
@@ -64,21 +64,21 @@ button:hover {
   border-color: #569cd6;
 }
 
-button.btn-play {
+button.play-btn {
   color: #4ec9b0;
   border-color: #4ec9b0;
 }
 
-button.btn-play:hover {
+button.play-btn:hover {
   background: rgba(78, 201, 176, 0.1);
 }
 
-button.btn-stop {
+button.stop-btn {
   color: #f48771;
   border-color: #f48771;
 }
 
-button.btn-stop:hover {
+button.stop-btn:hover {
   background: rgba(244, 135, 113, 0.1);
 }
 
@@ -87,7 +87,6 @@ button svg {
   height: 14px;
 }
 
-/* NEW: Timeline styles */
 .timeline {
   background: #252526;
   border-bottom: 1px solid #3e3e42;

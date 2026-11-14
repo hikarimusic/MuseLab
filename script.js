@@ -30,10 +30,10 @@ function hideStatus() {
     document.getElementById('status').classList.remove('visible');
 }
 
-function parsePitch(pitchStr, key, isPercussion) {
-    if (isPercussion) {
-        if (!(pitchStr.toLowerCase() in percussionMap)) return null;
-        return percussionMap[pitchStr.toLowerCase()];
+function parsePitch(pitchStr, key, isPerc) {
+    if (isPerc) {
+        if (!(pitchStr.toLowerCase() in percMap)) return null;
+        return percMap[pitchStr.toLowerCase()];
     }
     const match = pitchStr.toLowerCase().match(/^([a-g][sb]?)(\d*)$/);
     if (!match) return null;
@@ -71,7 +71,7 @@ function buildEvents(track, start, slots, key) {
         else {
             let prev = null;
             pitches = pitches.split('-').map((n, i) => {
-                if (track.isPercussion) return parsePitch(n, key, true);
+                if (track.isPerc) return parsePitch(n, key, true);
                 const octave = n.match(/\d+$/)?.[0];
                 if (i === 0) {
                     if (octave) lastOctave = octave;
@@ -103,19 +103,13 @@ function buildEvents(track, start, slots, key) {
 }
 
 function parseNotation(text) {
-    const lines = text.split('\n').filter(l => l.trim());
+    const lines = text.split('\n').filter(l => l.trim() && !l.trim().startsWith('//'));
     const sections = {};
-    let currentSection = null;
-    let currentTrack = null;
-    let currentStart = null;
-    let currentSlots = null;
+    let currentSection = null, currentTrack = null, currentStart = null, currentSlots = null;
+    let lastLength = '32', lastTempo = '120', lastKey = 'c4';
     for (const line of lines) {
         if (!line.startsWith('-') && !line.includes('.')) {
-            const [name, keyStr, lengthStr, tempoStr] = line.split(/[\s:]+/).filter(p => p);
-            if (keyStr !== undefined && !/^[a-g][sb]?\d*$/i.test(keyStr)) {
-                showError(`Invalid key "${keyStr}" in section "${name}"`);
-                break;
-            }
+            const [name, lengthStr, tempoStr, keyStr] = line.split(/[\s:]+/).filter(p => p);
             if (lengthStr !== undefined && !/^[1-9]\d*$/.test(lengthStr)) {
                 showError(`Invalid length "${lengthStr}" in section "${name}"`);
                 break;
@@ -124,10 +118,14 @@ function parseNotation(text) {
                 showError(`Invalid tempo "${tempoStr}" in section "${name}"`);
                 break;
             }
-            const key = parsePitch(keyStr ?? 'c4', 60);
-            const length = parseFloat(lengthStr ?? 32);
-            const tempo = parseFloat(tempoStr ?? 120);
-            sections[name] = {length, key, tempo, tracks: {}};
+            if (keyStr !== undefined && !/^[a-g][sb]?\d*$/i.test(keyStr)) {
+                showError(`Invalid key "${keyStr}" in section "${name}"`);
+                break;
+            }
+            const length = parseFloat(lastLength = lengthStr ?? lastLength);
+            const tempo = parseFloat(lastTempo = tempoStr ?? lastTempo);
+            const key = parsePitch(lastKey = keyStr ?? lastKey, 60);
+            sections[name] = {length, tempo, key, tracks: {}};
             currentSection = name;
             currentTrack = null;
         } 
@@ -137,11 +135,11 @@ function parseNotation(text) {
                 showError(`No section for track "${name}"`);
                 break;
             }
-            if (instStr !== undefined && !(instStr.toLowerCase() in instrumentMap)) {
+            if (instStr !== undefined && !(instStr.toLowerCase() in instMap)) {
                 showError(`Invalid instrument "${instStr}" for track "${name}"`);
                 break;
             }
-            if (gainStr !== undefined && !/^\d*\.?\d+$/.test(gainStr)) {
+            if (gainStr !== undefined && !/^\d*\.?\d+s?$/.test(gainStr)) {
                 showError(`Invalid gain "${gainStr}" for track "${name}"`);
                 break;
             }
@@ -149,11 +147,12 @@ function parseNotation(text) {
                 showError(`Invalid pan "${panStr}" for track "${name}"`);
                 break;
             }
-            const instrument = instrumentMap[(instStr ?? 'apiano').toLowerCase()];
-            const isPercussion = instrument === 128;
+            const inst = instMap[(instStr ?? 'apiano').toLowerCase()];
+            const isPerc = inst === 128;
             const gain = parseFloat(gainStr ?? 1);
             const pan  = parseFloat(panStr ?? 0);
-            sections[currentSection].tracks[name] = {instrument, isPercussion, gain, pan, events: []};
+            const solo = /s$/i.test(gainStr ?? '');
+            sections[currentSection].tracks[name] = {inst, isPerc, gain, pan, solo, events: []};
         } 
         else if (!line.startsWith('-')) {
             const [trackPath, startStr] = line.split(/[\s:]+/).filter(t => t);
@@ -181,7 +180,7 @@ function parseNotation(text) {
             if (/^\d*\.?\d+$/.test(first)) {
                 field = 'duration';
             } 
-            else if (/^[a-g][sb]?\d$/i.test(first.split('-')[0]) || track.isPercussion) {
+            else if (/^[a-g][sb]?\d$/i.test(first.split('-')[0]) || track.isPerc) {
                 field = 'pitches';
             } 
             else {
@@ -189,7 +188,7 @@ function parseNotation(text) {
             }
             if (currentSlots.length === 0) {
                 const duration = '1';
-                const pitches = track.isPercussion ? 'b' : 'c4';
+                const pitches = track.isPerc ? 'b' : 'c4';
                 const lyric = null;
                 currentSlots = tokens.map(() => ({ duration, pitches, lyric}));
             }
@@ -197,6 +196,12 @@ function parseNotation(text) {
                 currentSlots[i][field] = t;
             });
             buildEvents(track, currentStart, currentSlots, section.key);
+        }
+    }
+    for (const sec of Object.values(sections)) {
+        const tracks = Object.values(sec.tracks);
+        if (tracks.some(t => t.solo)) {
+            tracks.forEach(t => { if (!t.solo) t.gain = 0; });
         }
     }
     return sections;
@@ -210,7 +215,7 @@ function renderTimeline() {
     timelineSections.innerHTML = '';
     
     if (Object.keys(sections).length === 0) {
-        timelineSections.innerHTML = '<div class="timeline-empty">No sections defined</div>';
+        timelineSections.innerHTML = '<div class="timeline-empty">No sections</div>';
         totalBeats = 0;
         return;
     }
@@ -284,15 +289,15 @@ function handleTimelineClick(e) {
     updateRulerPosition();
 }
 
-async function loadInstrument(programNumber, panValue = 0.5, isPercussion = false) {
-    const key = `${isPercussion ? 'perc' : programNumber}_${panValue}`;
+async function loadInstrument(programNumber, panValue = 0.5, isPerc = false) {
+    const key = `${isPerc ? 'perc' : programNumber}_${panValue}`;
     if (instruments[key]) return { instrument: instruments[key], panner: panners[key] };
     
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 
-    showStatus(`Loading ${instrumentNames[programNumber]}...`);
+    showStatus(`Loading ${instNames[programNumber]}...`);
     
     const panner = audioContext.createStereoPanner();
     panner.pan.value = panValue;
@@ -300,14 +305,14 @@ async function loadInstrument(programNumber, panValue = 0.5, isPercussion = fals
     
     try {
         let instrument;
-        if (isPercussion) {
+        if (isPerc) {
             const percUrl = 'https://hikarimusic.github.io/MuseLab/Percussion/percussion-mp3.js';
             instrument = await Soundfont.instrument(audioContext, 'percussion', {
                 nameToUrl: () => percUrl,
                 destination: panner
             });
         } else {
-            const instName = instrumentNames[programNumber]
+            const instName = instNames[programNumber]
                 .toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/).join('_');
             const meloUrl = `https://hikarimusic.github.io/MuseLab/FluidR3_GM/${instName}-mp3.js`;
             instrument = await Soundfont.instrument(audioContext, instName, {
@@ -348,17 +353,17 @@ async function play() {
     const instrumentsToLoad = new Map();
     Object.values(sections).forEach(section => {
         Object.values(section.tracks).forEach(track => {
-            const key = `${track.isPercussion ? 'perc' : track.instrument}_${track.pan}`;
+            const key = `${track.isPerc ? 'perc' : track.inst}_${track.pan}`;
             instrumentsToLoad.set(key, { 
-                instrument: track.instrument, 
+                inst: track.inst, 
                 pan: track.pan,
-                isPercussion: track.isPercussion || false
+                isPerc: track.isPerc || false
             });
         });
     });
 
-    for (const [key, { instrument: inst, pan, isPercussion }] of instrumentsToLoad) {
-        await loadInstrument(inst, pan, isPercussion);
+    for (const [key, { inst, pan, isPerc }] of instrumentsToLoad) {
+        await loadInstrument(inst, pan, isPerc);
     }
 
     hideStatus();
@@ -402,7 +407,7 @@ async function play() {
         const sectionBeatStart = sectionBeatOffsets[sectionName];
         
         Object.entries(section.tracks).forEach(([trackName, track]) => {
-            const key = `${track.isPercussion ? 'perc' : track.instrument}_${track.pan}`;
+            const key = `${track.isPerc ? 'perc' : track.inst}_${track.pan}`;
             const { instrument } = instruments[key] ? { instrument: instruments[key] } : {};
             
             if (!instrument) return;
@@ -549,8 +554,8 @@ function buildMidi(sections) {
     const groups = new Map();
     Object.entries(sections).forEach(([sectionName, section]) => {
         Object.entries(section.tracks).forEach(([trackName, track]) => {
-            const key = track.isPercussion ? `${trackName}#perc` : trackName;
-            if (!groups.has(key)) groups.set(key, {name: trackName, isPercussion: track.isPercussion, parts: []});
+            const key = track.isPerc ? `${trackName}#perc` : trackName;
+            if (!groups.has(key)) groups.set(key, {name: trackName, isPerc: track.isPerc, parts: []});
             groups.get(key).parts.push({sectionName, track});
         });
     });
@@ -560,7 +565,7 @@ function buildMidi(sections) {
     const midiTracks = [encodeTrack(conductor, endTick)];
     groups.forEach(group => {
         let channel;
-        if (group.isPercussion) {
+        if (group.isPerc) {
             channel = 9;
         } else {
             channel = nextChannel;
@@ -571,8 +576,8 @@ function buildMidi(sections) {
         const events = [{tick: 0, order: 0, bytes: metaEvent(0x03, [...enc.encode(group.name)])}];
         group.parts.forEach(({sectionName, track}) => {
             const sectionTick = toTick(offsets[sectionName]);
-            if (!track.isPercussion) {
-                events.push({tick: sectionTick, order: 0, bytes: [0xc0 | channel, clamp(track.instrument | 0, 0, 127)]});
+            if (!track.isPerc) {
+                events.push({tick: sectionTick, order: 0, bytes: [0xc0 | channel, clamp(track.inst | 0, 0, 127)]});
             }
             events.push({tick: sectionTick, order: 0, bytes: [0xb0 | channel, 10, clamp(Math.round((track.pan + 1) * 63.5), 0, 127)]});
 
@@ -672,6 +677,88 @@ async function loadExample(filepath) {
     }
 }
 
+function populateGuide() {
+    const midiToInstrumentShortcut = {};
+    Object.entries(instMap).forEach(([shortcut, midi]) => {
+        if (!midiToInstrumentShortcut[midi]) {
+            midiToInstrumentShortcut[midi] = [];
+        }
+        midiToInstrumentShortcut[midi].push(shortcut);
+    });
+    
+    const instrumentListEl = document.getElementById('instrumentList');
+    Object.entries(instNames).forEach(([index, name]) => {
+        index = Number(index);
+        const shortcuts = midiToInstrumentShortcut[index];
+        const p = document.createElement('p');
+        if (shortcuts && shortcuts.length > 0) {
+            const shortcutStr = shortcuts.map(s => `<code>${s}</code>`).join(', ');
+            p.innerHTML = `${name}: ${shortcutStr} <span class="midi-num">(${index})</span>`;
+        } else {
+            p.innerHTML = `${name}: <span class="midi-num">(${index})</span>`;
+        }
+        instrumentListEl.appendChild(p);
+    });
+    
+    const pitchListEl = document.getElementById('pitchList');
+    const pitchSequence = [
+        { names: ['c'], display: 'C', offset: 0 },
+        { names: ['cs', 'db'], display: ['C#', 'Db'], offset: 1 },
+        { names: ['d'], display: 'D', offset: 2 },
+        { names: ['ds', 'eb'], display: ['D#', 'Eb'], offset: 3 },
+        { names: ['e'], display: 'E', offset: 4 },
+        { names: ['f'], display: 'F', offset: 5 },
+        { names: ['fs', 'gb'], display: ['F#', 'Gb'], offset: 6 },
+        { names: ['g'], display: 'G', offset: 7 },
+        { names: ['gs', 'ab'], display: ['G#', 'Ab'], offset: 8 },
+        { names: ['a'], display: 'A', offset: 9 },
+        { names: ['as', 'bb'], display: ['A#', 'Bb'], offset: 10 },
+        { names: ['b'], display: 'B', offset: 11 }
+    ];
+    
+    for (let octave = 0; octave <= 8; octave++) {
+        pitchSequence.forEach(pitchInfo => {
+            const midiNum = (octave + 1) * 12 + pitchInfo.offset;
+            if (midiNum <= 127) {
+                if (Array.isArray(pitchInfo.display)) {
+                    // Show both sharp and flat on separate lines
+                    pitchInfo.names.forEach((pitchName, idx) => {
+                        const p = document.createElement('p');
+                        p.innerHTML = `${pitchInfo.display[idx]}${octave}: <code>${pitchName}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
+                        pitchListEl.appendChild(p);
+                    });
+                } else {
+                    // Single pitch name
+                    const p = document.createElement('p');
+                    p.innerHTML = `${pitchInfo.display}${octave}: <code>${pitchInfo.names[0]}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
+                    pitchListEl.appendChild(p);
+                }
+            }
+        });
+    }
+    
+    const percussionListEl = document.getElementById('percussionList');
+    const midiToShortcut = {};
+    Object.entries(percMap).forEach(([shortcut, midi]) => {
+        if (!midiToShortcut[midi]) {
+            midiToShortcut[midi] = [];
+        }
+        midiToShortcut[midi].push(shortcut);
+    });
+    
+    Object.entries(percNames).forEach(([midiNum, name]) => {
+        const shortcuts = midiToShortcut[midiNum];
+        const p = document.createElement('p');
+        if (shortcuts && shortcuts.length > 0) {
+            const shortcutStr = shortcuts.map(s => `<code>${s}</code>`).join(', ');
+            p.innerHTML = `${name}: ${shortcutStr} <span class="midi-num">(${midiNum})</span>`;
+        } else {
+            p.innerHTML = `${name}: <span class="midi-num">(${midiNum})</span>`;
+        }
+        percussionListEl.appendChild(p);
+    });
+}
+
 // Event listeners
 document.getElementById('playBtn').addEventListener('click', play);
 document.getElementById('stopBtn').addEventListener('click', () => stop());
@@ -735,90 +822,8 @@ document.querySelectorAll('.example-item').forEach(item => {
     });
 });
 
-function populateGuide() {
-    const midiToInstrumentShortcut = {};
-    Object.entries(instrumentMap).forEach(([shortcut, midi]) => {
-        if (!midiToInstrumentShortcut[midi]) {
-            midiToInstrumentShortcut[midi] = [];
-        }
-        midiToInstrumentShortcut[midi].push(shortcut);
-    });
-    
-    const instrumentListEl = document.getElementById('instrumentList');
-    Object.entries(instrumentNames).forEach(([index, name]) => {
-        index = Number(index);
-        const shortcuts = midiToInstrumentShortcut[index];
-        const p = document.createElement('p');
-        if (shortcuts && shortcuts.length > 0) {
-            const shortcutStr = shortcuts.map(s => `<code>${s}</code>`).join(', ');
-            p.innerHTML = `${name}: ${shortcutStr} <span class="midi-num">(${index})</span>`;
-        } else {
-            p.innerHTML = `${name}: <span class="midi-num">(${index})</span>`;
-        }
-        instrumentListEl.appendChild(p);
-    });
-    
-    const pitchListEl = document.getElementById('pitchList');
-    const pitchSequence = [
-        { names: ['c'], display: 'C', offset: 0 },
-        { names: ['cs', 'db'], display: ['C#', 'Db'], offset: 1 },
-        { names: ['d'], display: 'D', offset: 2 },
-        { names: ['ds', 'eb'], display: ['D#', 'Eb'], offset: 3 },
-        { names: ['e'], display: 'E', offset: 4 },
-        { names: ['f'], display: 'F', offset: 5 },
-        { names: ['fs', 'gb'], display: ['F#', 'Gb'], offset: 6 },
-        { names: ['g'], display: 'G', offset: 7 },
-        { names: ['gs', 'ab'], display: ['G#', 'Ab'], offset: 8 },
-        { names: ['a'], display: 'A', offset: 9 },
-        { names: ['as', 'bb'], display: ['A#', 'Bb'], offset: 10 },
-        { names: ['b'], display: 'B', offset: 11 }
-    ];
-    
-    for (let octave = 0; octave <= 8; octave++) {
-        pitchSequence.forEach(pitchInfo => {
-            const midiNum = (octave + 1) * 12 + pitchInfo.offset;
-            if (midiNum <= 127) {
-                if (Array.isArray(pitchInfo.display)) {
-                    // Show both sharp and flat on separate lines
-                    pitchInfo.names.forEach((pitchName, idx) => {
-                        const p = document.createElement('p');
-                        p.innerHTML = `${pitchInfo.display[idx]}${octave}: <code>${pitchName}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
-                        pitchListEl.appendChild(p);
-                    });
-                } else {
-                    // Single pitch name
-                    const p = document.createElement('p');
-                    p.innerHTML = `${pitchInfo.display}${octave}: <code>${pitchInfo.names[0]}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
-                    pitchListEl.appendChild(p);
-                }
-            }
-        });
-    }
-    
-    const percussionListEl = document.getElementById('percussionList');
-    const midiToShortcut = {};
-    Object.entries(percussionMap).forEach(([shortcut, midi]) => {
-        if (!midiToShortcut[midi]) {
-            midiToShortcut[midi] = [];
-        }
-        midiToShortcut[midi].push(shortcut);
-    });
-    
-    Object.entries(percussionNames).forEach(([midiNum, name]) => {
-        const shortcuts = midiToShortcut[midiNum];
-        const p = document.createElement('p');
-        if (shortcuts && shortcuts.length > 0) {
-            const shortcutStr = shortcuts.map(s => `<code>${s}</code>`).join(', ');
-            p.innerHTML = `${name}: ${shortcutStr} <span class="midi-num">(${midiNum})</span>`;
-        } else {
-            p.innerHTML = `${name}: <span class="midi-num">(${midiNum})</span>`;
-        }
-        percussionListEl.appendChild(p);
-    });
-}
-
 // Initialize
-document.getElementById('notation').value = `a1: d4 10 90
+document.getElementById('notation').value = `a1: 10 90 d4
 - main: flute 1 0
 - chord: strings1 .5 0
 - drum: perc .5 0
