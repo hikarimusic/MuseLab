@@ -1,8 +1,10 @@
 let instruments = {};
 let panners = {};
 let isPlaying = false;
+let tempoMap = [];
 let scheduledNotes = [];
 let audioContext = null;
+let audioNeedsReset = false;
 let playbackStartBeat = 0;
 let totalBeats = 0;
 let playbackStartTime = 0;
@@ -165,6 +167,10 @@ function parseNotation(text) {
                 showError(`Invalid start "${startStr}" for track "${secName}.${trkName}"`);
                 break;
             }
+            if (parseFloat(startStr) < 0 && secName === Object.keys(sections)[0]) {
+                showError(`Negative start "${startStr}" not allowed in first section "${secName}"`);
+                break;
+            }
             currentSection = secName;
             currentTrack = trkName;
             currentStart = parseFloat(startStr ?? 0);
@@ -207,76 +213,49 @@ function parseNotation(text) {
     return sections;
 }
 
+function updateRuler() {
+    const ruler = document.getElementById('timelineRuler');
+    if (totalBeats === 0) {
+        ruler.style.display = 'none';
+        return;
+    }
+    ruler.style.display = '';
+    const percentage = (playbackStartBeat / totalBeats) * 100;
+    ruler.style.left = `${percentage}%`;
+}
+
 function renderTimeline() {
     const notation = document.getElementById('notation').value;
     const sections = parseNotation(notation);
     const timelineSections = document.getElementById('timelineSections');
-    
     timelineSections.innerHTML = '';
-    
     if (Object.keys(sections).length === 0) {
         timelineSections.innerHTML = '<div class="timeline-empty">No sections</div>';
         totalBeats = 0;
+        updateRuler();
         return;
     }
-    
     totalBeats = Object.values(sections).reduce((sum, section) => sum + section.length, 0);
-    
     let beatOffset = 0;
     Object.entries(sections).forEach(([name, section]) => {
         const sectionDiv = document.createElement('div');
         sectionDiv.className = 'timeline-section';
         sectionDiv.style.width = `${(section.length / totalBeats) * 100}%`;
-        sectionDiv.dataset.sectionName = name;
-        sectionDiv.dataset.startBeat = beatOffset;
-        sectionDiv.dataset.endBeat = beatOffset + section.length;
-        
         const bg = document.createElement('div');
         bg.className = 'timeline-section-bg';
         sectionDiv.appendChild(bg);
-        
         const label = document.createElement('div');
         label.className = 'timeline-section-label';
         label.textContent = name;
         sectionDiv.appendChild(label);
-        
         const beats = document.createElement('div');
         beats.className = 'timeline-section-beats';
         beats.textContent = section.length;
         sectionDiv.appendChild(beats);
-        
         timelineSections.appendChild(sectionDiv);
         beatOffset += section.length;
     });
-    
-    updateRulerPosition();
-}
-
-function updateRulerPosition() {
-    const ruler = document.getElementById('timelineRuler');
-    if (totalBeats === 0) {
-        ruler.style.left = '0px';
-        return;
-    }
-    
-    const percentage = (playbackStartBeat / totalBeats) * 100;
-    ruler.style.left = `${percentage}%`;
-}
-
-function animateRuler() {
-    if (!isPlaying || !audioContext) {
-        return;
-    }
-    
-    const elapsedTime = audioContext.currentTime - playbackStartTime;
-    const elapsedBeats = (elapsedTime / 60) * currentTempo;
-    const currentBeat = Math.min(playbackStartBeat + elapsedBeats, totalBeats);
-    
-    const ruler = document.getElementById('timelineRuler');
-    const percentage = (currentBeat / totalBeats) * 100;
-    ruler.style.left = `${percentage}%`;
-    
-    playbackAnimationId = requestAnimationFrame(animateRuler);
+    updateRuler();
 }
 
 function handleTimelineClick(e) {
@@ -284,54 +263,94 @@ function handleTimelineClick(e) {
     const rect = timeline.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = clickX / rect.width;
-    
     playbackStartBeat = Math.max(0, Math.min(totalBeats, percentage * totalBeats));
-    updateRulerPosition();
+    updateRuler();
+}
+
+function buildTempoMap(sections) {
+    const map = [];
+    let beat = 0;
+    let sec = 0;
+    Object.values(sections).forEach(section => {
+        const secPerBeat = 60 / section.tempo;
+        map.push({ startBeat: beat, startSec: sec, secPerBeat });
+        beat += section.length;
+        sec += section.length * secPerBeat;
+    });
+    return map;
+}
+
+function findSegment(value, field) {
+    let seg = tempoMap[0];
+    for (const s of tempoMap) {
+        if (value >= s[field]) seg = s;
+        else break;
+    }
+    return seg;
+}
+
+function beatToSec(beat) {
+    const seg = findSegment(beat, 'startBeat');
+    return seg.startSec + (beat - seg.startBeat) * seg.secPerBeat;
+}
+
+function secToBeat(sec) {
+    const seg = findSegment(sec, 'startSec');
+    return seg.startBeat + (sec - seg.startSec) / seg.secPerBeat;
+}
+
+function animateRuler() {
+    if (!isPlaying || !audioContext) {
+        return;
+    }
+    const elapsedTime = audioContext.currentTime - playbackStartTime;
+    const currentSec = beatToSec(playbackStartBeat) + elapsedTime;
+    const currentBeat = Math.min(secToBeat(currentSec), totalBeats);
+    const ruler = document.getElementById('timelineRuler');
+    const percentage = (currentBeat / totalBeats) * 100;
+    ruler.style.left = `${percentage}%`;
+    playbackAnimationId = requestAnimationFrame(animateRuler);
 }
 
 async function loadInstrument(programNumber, panValue = 0.5, isPerc = false) {
     const key = `${isPerc ? 'perc' : programNumber}_${panValue}`;
-    if (instruments[key]) return { instrument: instruments[key], panner: panners[key] };
-    
+    if (instruments[key]) return;
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
-
     showStatus(`Loading ${instNames[programNumber]}...`);
-    
     const panner = audioContext.createStereoPanner();
     panner.pan.value = panValue;
     panner.connect(audioContext.destination);
-    
-    try {
-        let instrument;
-        if (isPerc) {
-            const percUrl = 'https://hikarimusic.github.io/MuseLab/Percussion/percussion-mp3.js';
-            instrument = await Soundfont.instrument(audioContext, 'percussion', {
-                nameToUrl: () => percUrl,
-                destination: panner
-            });
-        } else {
-            const instName = instNames[programNumber]
-                .toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/).join('_');
-            const meloUrl = `https://hikarimusic.github.io/MuseLab/FluidR3_GM/${instName}-mp3.js`;
-            instrument = await Soundfont.instrument(audioContext, instName, {
-                nameToUrl: () => meloUrl,
-                destination: panner
-            });
-        }
-        instruments[key] = instrument;
-        panners[key] = panner;
-        return { instrument, panner };
-    } catch (e) {
-        console.warn(`Failed to load instrument, using piano`);
-        const piano = await Soundfont.instrument(audioContext, 'acoustic_grand_piano', {
-            destination: panner
-        });
-        instruments[key] = piano;
-        panners[key] = panner;
-        return { instrument: piano, panner };
+    let url;
+    if (isPerc) {
+        url = 'https://hikarimusic.github.io/MuseLab/Percussion/percussion-mp3.js';
+    } 
+    else {
+        const instName = instNames[programNumber].toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/).join('_');
+        url = `https://hikarimusic.github.io/MuseLab/FluidR3_GM/${instName}-mp3.js`;
     }
+    try {
+        instruments[key] = await Soundfont.instrument(audioContext, url, { destination: panner });
+    } 
+    catch (e) {
+        console.warn(`Failed to load ${instNames[programNumber]}, using apiano`);
+        url = 'https://hikarimusic.github.io/MuseLab/FluidR3_GM/acoustic_grand_piano-mp3.js';
+        instruments[key] = await Soundfont.instrument(audioContext, url, { destination: panner });
+    }
+}
+
+function prepareAudioContext() {
+    if (audioContext && (audioNeedsReset || audioContext.state === 'closed')) {
+        audioContext.close().catch(() => {});
+        audioContext = null;
+        instruments = {};
+    }
+    audioNeedsReset = false;
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioContext.resume().catch(() => {});
 }
 
 async function play() {
@@ -343,12 +362,18 @@ async function play() {
         return;
     }
 
+    const resumed = prepareAudioContext();
+    await Promise.race([resumed, new Promise(r => setTimeout(r, 1000))]);
+
+    if (audioContext.state !== 'running') {
+        audioNeedsReset = true;
+        showError('Audio was interrupted. Tap Play again.');
+        return;
+    }
+
     document.getElementById('playBtn').style.display = 'none';
     document.getElementById('stopBtn').style.display = 'flex';
     isPlaying = true;
-
-    const firstSection = Object.values(sections)[0];
-    currentTempo = firstSection.tempo;
 
     const instrumentsToLoad = new Map();
     Object.values(sections).forEach(section => {
@@ -362,85 +387,54 @@ async function play() {
         });
     });
 
-    for (const [key, { inst, pan, isPerc }] of instrumentsToLoad) {
+    for (const { inst, pan, isPerc } of instrumentsToLoad.values()) {
         await loadInstrument(inst, pan, isPerc);
     }
 
     hideStatus();
 
-    // Start playback animation
-    playbackStartTime = audioContext.currentTime;
-    animateRuler();
+    tempoMap = buildTempoMap(sections);
+    const startSec = beatToSec(playbackStartBeat);
+    let sectionBeatStart = 0;
 
-    // Calculate beat offset for each section
-    const sectionBeatOffsets = {};
-    let beatOffset = 0;
-    Object.entries(sections).forEach(([name, section]) => {
-        sectionBeatOffsets[name] = beatOffset;
-        beatOffset += section.length;
-    });
-
-    let minStartTime = 0;
-    
-    // Calculate minimum start time considering all tracks
-    Object.entries(sections).forEach(([sectionName, section]) => {
-        const secondsPerBeat = 60 / section.tempo;
-        const sectionBeatStart = sectionBeatOffsets[sectionName];
-        
+    Object.values(sections).forEach(section => {
         Object.values(section.tracks).forEach(track => {
-            track.events.forEach(event => {
-                const eventBeat = sectionBeatStart + event.time;
-                const absoluteTime = eventBeat * secondsPerBeat;
-                minStartTime = Math.min(minStartTime, absoluteTime);
-            });
-        });
-    });
-
-    const timeShift = -minStartTime;
-    
-    // Convert playbackStartBeat to time offset
-    const startBeatOffset = playbackStartBeat;
-    let totalEndBeat = 0;
-    
-    Object.entries(sections).forEach(([sectionName, section]) => {
-        const secondsPerBeat = 60 / section.tempo;
-        const sectionBeatStart = sectionBeatOffsets[sectionName];
-        
-        Object.entries(section.tracks).forEach(([trackName, track]) => {
             const key = `${track.isPerc ? 'perc' : track.inst}_${track.pan}`;
-            const { instrument } = instruments[key] ? { instrument: instruments[key] } : {};
-            
+            const instrument = instruments[key];
             if (!instrument) return;
             
             track.events.forEach(event => {
                 const eventBeat = sectionBeatStart + event.time;
+                if (eventBeat < playbackStartBeat) return;
+
+                const eventSec = beatToSec(eventBeat);
+                const delay = eventSec - startSec;
+                const duration = beatToSec(eventBeat + event.duration) - eventSec;
                 
-                if (eventBeat >= startBeatOffset) {
-                    const startTimeSec = (eventBeat - startBeatOffset) * secondsPerBeat + timeShift;
-                    const duration = event.duration * secondsPerBeat;
-                    
-                    const timeout = setTimeout(() => {
-                        if (isPlaying) {
-                            event.pitches.forEach(pitch => {
-                                instrument.play(pitch, audioContext.currentTime, { duration, gain: track.gain });
-                            });
-                        }
-                    }, startTimeSec * 1000);
-                    
-                    scheduledNotes.push(timeout);
-                }
+                const timeout = setTimeout(() => {
+                    if (isPlaying) {
+                        event.pitches.forEach(pitch => {
+                            instrument.play(pitch, audioContext.currentTime, { duration, gain: track.gain });
+                        });
+                    }
+                }, delay * 1000);
+                
+                scheduledNotes.push(timeout);
             });
         });
         
-        totalEndBeat = sectionBeatStart + section.length;
+        sectionBeatStart += section.length;
     });
 
-    // Calculate end time based on total duration minus start offset
-    const endTime = (totalEndBeat - startBeatOffset) * (60 / firstSection.tempo) + timeShift;
-    
+    // sectionBeatStart is now the total length of the song in beats
+    const endTime = beatToSec(sectionBeatStart) - startSec;
     endTimeout = setTimeout(() => {
         if (isPlaying) stop(true); // true = auto-stop at end
     }, endTime * 1000);
+
+    // Start playback animation
+    playbackStartTime = audioContext.currentTime;
+    animateRuler();
 }
 
 function stop(autoStop = false) {
@@ -464,7 +458,7 @@ function stop(autoStop = false) {
     if (autoStop) {
         playbackStartBeat = 0;
     }
-    updateRulerPosition();
+    updateRuler();
     
     document.getElementById('playBtn').style.display = 'flex';
     document.getElementById('stopBtn').style.display = 'none';
@@ -812,6 +806,15 @@ document.addEventListener('keydown', (e) => {
             play();
         }
         return;
+    }
+});
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        if (isPlaying) stop();
+        if (audioContext && audioContext.state === 'running') {
+            audioContext.suspend().catch(() => {});
+        }
     }
 });
 
