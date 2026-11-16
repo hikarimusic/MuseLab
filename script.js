@@ -335,8 +335,7 @@ async function loadInstrument(programNumber, panValue = 0.5, isPerc = false) {
     } 
     catch (e) {
         console.warn(`Failed to load ${instNames[programNumber]}, using apiano`);
-        url = 'https://hikarimusic.github.io/MuseLab/FluidR3_GM/acoustic_grand_piano-mp3.js';
-        instruments[key] = await Soundfont.instrument(audioContext, url, { destination: panner });
+        instruments[key] = await Soundfont.instrument(audioContext, 'acoustic_grand_piano', { destination: panner });
     }
 }
 
@@ -356,61 +355,40 @@ function prepareAudioContext() {
 async function play() {
     const notation = document.getElementById('notation').value;
     const sections = parseNotation(notation);
-    
     if (Object.keys(sections).length === 0) {
-        showError('No valid sections found');
+        showError('No sections found');
         return;
     }
-
     const resumed = prepareAudioContext();
     await Promise.race([resumed, new Promise(r => setTimeout(r, 1000))]);
-
     if (audioContext.state !== 'running') {
         audioNeedsReset = true;
         showError('Audio was interrupted. Tap Play again.');
         return;
     }
-
     document.getElementById('playBtn').style.display = 'none';
     document.getElementById('stopBtn').style.display = 'flex';
     isPlaying = true;
-
-    const instrumentsToLoad = new Map();
-    Object.values(sections).forEach(section => {
-        Object.values(section.tracks).forEach(track => {
-            const key = `${track.isPerc ? 'perc' : track.inst}_${track.pan}`;
-            instrumentsToLoad.set(key, { 
-                inst: track.inst, 
-                pan: track.pan,
-                isPerc: track.isPerc || false
-            });
-        });
-    });
-
-    for (const { inst, pan, isPerc } of instrumentsToLoad.values()) {
-        await loadInstrument(inst, pan, isPerc);
+    for (const section of Object.values(sections)) {
+        for (const track of Object.values(section.tracks)) {
+            await loadInstrument(track.inst, track.pan, track.isPerc || false);
+        }
     }
-
     hideStatus();
-
     tempoMap = buildTempoMap(sections);
     const startSec = beatToSec(playbackStartBeat);
     let sectionBeatStart = 0;
-
     Object.values(sections).forEach(section => {
         Object.values(section.tracks).forEach(track => {
             const key = `${track.isPerc ? 'perc' : track.inst}_${track.pan}`;
             const instrument = instruments[key];
             if (!instrument) return;
-            
             track.events.forEach(event => {
                 const eventBeat = sectionBeatStart + event.time;
                 if (eventBeat < playbackStartBeat) return;
-
                 const eventSec = beatToSec(eventBeat);
                 const delay = eventSec - startSec;
                 const duration = beatToSec(eventBeat + event.duration) - eventSec;
-                
                 const timeout = setTimeout(() => {
                     if (isPlaying) {
                         event.pitches.forEach(pitch => {
@@ -418,21 +396,15 @@ async function play() {
                         });
                     }
                 }, delay * 1000);
-                
                 scheduledNotes.push(timeout);
             });
         });
-        
         sectionBeatStart += section.length;
     });
-
-    // sectionBeatStart is now the total length of the song in beats
     const endTime = beatToSec(sectionBeatStart) - startSec;
     endTimeout = setTimeout(() => {
-        if (isPlaying) stop(true); // true = auto-stop at end
+        if (isPlaying) stop(true);
     }, endTime * 1000);
-
-    // Start playback animation
     playbackStartTime = audioContext.currentTime;
     animateRuler();
 }
@@ -441,30 +413,23 @@ function stop(autoStop = false) {
     isPlaying = false;
     scheduledNotes.forEach(timeout => clearTimeout(timeout));
     scheduledNotes = [];
-    
-    // Clear the end timeout
     if (endTimeout) {
         clearTimeout(endTimeout);
         endTimeout = null;
     }
-    
-    // Stop ruler animation
     if (playbackAnimationId) {
         cancelAnimationFrame(playbackAnimationId);
         playbackAnimationId = null;
     }
-    
-    // If auto-stopped at end, reset ruler to start; otherwise keep current position
     if (autoStop) {
         playbackStartBeat = 0;
     }
     updateRuler();
-    
     document.getElementById('playBtn').style.display = 'flex';
     document.getElementById('stopBtn').style.display = 'none';
 }
 
-// ---------- MIDI export ----------
+
 
 function writeVarLen(value, out) {
     const bytes = [value & 0x7f];
