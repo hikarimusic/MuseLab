@@ -429,141 +429,105 @@ function stop(autoStop = false) {
     document.getElementById('stopBtn').style.display = 'none';
 }
 
-
-
-function writeVarLen(value, out) {
-    const bytes = [value & 0x7f];
-    while ((value >>>= 7) > 0) {
-        bytes.unshift((value & 0x7f) | 0x80);
+function writeLen(value, bytes) {
+    const out = [];
+    if (bytes < 0) {
+        out.push(value & 0x7f);
+        while ((value >>>= 7) > 0) out.unshift((value & 0x7f) | 0x80);
     }
-    out.push(...bytes);
-}
-
-function metaEvent(type, dataBytes) {
-    const out = [0xff, type];
-    writeVarLen(dataBytes.length, out);
-    out.push(...dataBytes);
+    else {
+        for (let i = bytes-1; i >= 0; i--) out.push((value >>> (8 * i)) & 0xff);
+    }
     return out;
 }
 
-function encodeTrack(events, endTick) {
-    // order: 0 = setup, 1 = note off, 2 = meta/lyric, 3 = note on
+function encodeTrack(events) {
     events.sort((a, b) => a.tick - b.tick || a.order - b.order);
     const data = [];
     let lastTick = 0;
     events.forEach(e => {
-        writeVarLen(e.tick - lastTick, data);
-        data.push(...e.bytes);
+        data.push(...writeLen(e.tick - lastTick, -1), ...e.bytes);
         lastTick = e.tick;
     });
-    writeVarLen(Math.max(0, endTick - lastTick), data);
-    data.push(0xff, 0x2f, 0x00); // end of track
-    const len = data.length;
-    return [0x4d, 0x54, 0x72, 0x6b, // "MTrk"
-        (len >>> 24) & 0xff, (len >>> 16) & 0xff, (len >>> 8) & 0xff, len & 0xff,
-        ...data];
+    data.push(0x00, 0xff, 0x2f, 0x00);
+    return [...new TextEncoder().encode('MTrk'), ...writeLen(data.length, 4), ...data];
 }
 
 function buildMidi(sections) {
     const PPQ = 480;
+    const keySharps = [0, -5, 2, -3, 4, -1, 6, 1, -4, 3, -2, 5];
     const enc = new TextEncoder();
-    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-
-    // Beat offset of each section
     const offsets = {};
     let offset = 0;
     Object.entries(sections).forEach(([name, section]) => {
         offsets[name] = offset;
         offset += section.length;
     });
-    const songEndBeat = offset;
-
-    // Events may start before beat 0 (pickups), so shift everything forward
-    let minBeat = 0;
-    Object.entries(sections).forEach(([name, section]) => {
-        Object.values(section.tracks).forEach(track => {
-            track.events.forEach(e => {
-                minBeat = Math.min(minBeat, offsets[name] + e.time);
-            });
+    const groupMap = new Map();
+    Object.entries(sections).forEach(([secName, section]) => {
+        Object.entries(section.tracks).forEach(([trkName, track]) => {
+            if (!groupMap.has(trkName)) {
+                groupMap.set(trkName, {name: trkName, inst: track.inst, isPerc: track.isPerc, isMain: false, parts: []});
+            }
+            const group = groupMap.get(trkName);
+            group.parts.push({secName, track});
+            if (track.events.some(e => e.lyric)) group.isMain = true;
         });
     });
-    const shift = -minBeat;
-    const toTick = beat => Math.max(0, Math.round((beat + shift) * PPQ));
-
-    let endTick = toTick(songEndBeat);
-    Object.entries(sections).forEach(([name, section]) => {
-        Object.values(section.tracks).forEach(track => {
-            track.events.forEach(e => {
-                endTick = Math.max(endTick, toTick(offsets[name] + e.time + e.duration));
-            });
-        });
-    });
-
-    // Conductor track: tempo changes and section markers
+    const groups = [...groupMap.values()].sort((a, b) => b.isMain - a.isMain || a.inst - b.inst);
+    const data = [];
+    data.push(...enc.encode('MThd'), ...writeLen(6, 4),
+        ...writeLen(1, 2),
+        ...writeLen(groups.length + 1, 2),
+        ...writeLen(PPQ, 2));
     const conductor = [];
-    conductor.push({tick: 0, order: 0, bytes: metaEvent(0x03, [...enc.encode('Conductor')])});
     Object.entries(sections).forEach(([name, section]) => {
-        const tick = toTick(offsets[name]);
-        const mpq = Math.round(60000000 / (section.tempo || 120));
-        conductor.push({tick, order: 0, bytes: [0xff, 0x51, 0x03, (mpq >> 16) & 0xff, (mpq >> 8) & 0xff, mpq & 0xff]});
-        conductor.push({tick, order: 2, bytes: metaEvent(0x06, [...enc.encode(name)])});
+        const tick = Math.round(offsets[name] * PPQ);
+        conductor.push({tick, order: 0, bytes: [0xff, 0x51, 0x03, ...writeLen(Math.round(60000000 / section.tempo), 3)]});
+        const text = enc.encode(name);
+        conductor.push({tick, order: 2, bytes: [0xff, 0x06, ...writeLen(text.length, -1), ...text]});
     });
-
-    // Group tracks with the same name across sections into one MIDI track
-    const groups = new Map();
-    Object.entries(sections).forEach(([sectionName, section]) => {
-        Object.entries(section.tracks).forEach(([trackName, track]) => {
-            const key = track.isPerc ? `${trackName}#perc` : trackName;
-            if (!groups.has(key)) groups.set(key, {name: trackName, isPerc: track.isPerc, parts: []});
-            groups.get(key).parts.push({sectionName, track});
-        });
-    });
-
-    // Assign channels: percussion on channel 10 (index 9), others skip it
+    data.push(...encodeTrack(conductor));
     let nextChannel = 0;
-    const midiTracks = [encodeTrack(conductor, endTick)];
     groups.forEach(group => {
-        let channel;
-        if (group.isPerc) {
-            channel = 9;
-        } else {
-            channel = nextChannel;
+        let ch = 9;
+        if (!group.isPerc) {
+            ch = nextChannel;
             nextChannel = (nextChannel + 1) % 16;
             if (nextChannel === 9) nextChannel = 10;
         }
-
-        const events = [{tick: 0, order: 0, bytes: metaEvent(0x03, [...enc.encode(group.name)])}];
-        group.parts.forEach(({sectionName, track}) => {
-            const sectionTick = toTick(offsets[sectionName]);
+        const text = enc.encode(group.name);
+        const events = [{tick: 0, order: 0, bytes: [0xff, 0x03, ...writeLen(text.length, -1), ...text]}];
+        group.parts.forEach(({secName, track}) => {
+            const tick = Math.round(offsets[secName] * PPQ);
+            const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
             if (!track.isPerc) {
-                events.push({tick: sectionTick, order: 0, bytes: [0xc0 | channel, clamp(track.inst | 0, 0, 127)]});
+                const sf = keySharps[((sections[secName].key % 12) + 12) % 12];
+                events.push({tick, order: 0, bytes: [0xff, 0x59, 0x02, sf & 0xff, 0x00]});
+                events.push({tick, order: 0, bytes: [0xc0 | ch, clamp(track.inst, 0, 127)]});
             }
-            events.push({tick: sectionTick, order: 0, bytes: [0xb0 | channel, 10, clamp(Math.round((track.pan + 1) * 63.5), 0, 127)]});
-
-            const velocity = clamp(Math.round((isNaN(track.gain) ? 1 : track.gain) * 100), 1, 127);
+            events.push({tick, order: 0, bytes: [0xb0 | ch, 7, clamp(Math.round(track.gain * 100), 0, 127)]});
+            events.push({tick, order: 0, bytes: [0xb0 | ch, 10, clamp(Math.round((track.pan + 1) * 63.5), 0, 127)]});
             track.events.forEach(e => {
-                const beat = offsets[sectionName] + e.time;
-                const on = toTick(beat);
-                const off = Math.max(on + 1, toTick(beat + e.duration));
-                if (e.lyric) {
-                    events.push({tick: on, order: 2, bytes: metaEvent(0x05, [...enc.encode(e.lyric)])});
-                }
-                e.pitches.forEach(n => {
-                    const pitch = clamp(n, 0, 127);
-                    events.push({tick: on, order: 3, bytes: [0x90 | channel, pitch, velocity]});
-                    events.push({tick: off, order: 1, bytes: [0x80 | channel, pitch, 0]});
+                const on = Math.round((offsets[secName] + e.time) * PPQ);
+                const off = Math.round((offsets[secName] + e.time + e.duration) * PPQ);
+                e.pitches.forEach(p => {
+                    const pitch = clamp(p, 0, 127);
+                    events.push({tick: on, order: 3, bytes: [0x90 | ch, pitch, 100]});
+                    events.push({tick: off, order: 1, bytes: [0x80 | ch, pitch, 0]});
                 });
+                if (e.lyric) {
+                    const text = enc.encode(e.lyric);
+                    events.push({tick: on, order: 2, bytes: [0xff, 0x05, ...writeLen(text.length, -1), ...text]});
+                }
             });
         });
-        midiTracks.push(encodeTrack(events, endTick));
+        data.push(...encodeTrack(events));
     });
-
-    const header = [0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, // "MThd", length 6
-        0, 1,                                                // format 1
-        (midiTracks.length >> 8) & 0xff, midiTracks.length & 0xff,
-        (PPQ >> 8) & 0xff, PPQ & 0xff];
-    return new Uint8Array([...header, ...midiTracks.flat()]);
+    return new Uint8Array(data);
 }
+
+
 
 function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
