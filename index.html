@@ -80,7 +80,7 @@
     </div>
   </div>
   <div id="guidePanel" class="side-panel">
-    <h3>Notation</h3>
+    <h3>Guide</h3>
     <h4>1. Add Section</h4>
     <p><code>section: [length] [tempo] [key]</code></p>
     <p><strong>section: </strong>section name</p>
@@ -110,7 +110,7 @@
     <p><strong>trigger: </strong>if first input is a letter+number</p>
     <p><strong>pitch: </strong>pitch name see reference (default c4)</p>
     <p><strong>octave: </strong>inherit preceding octave if number omitted</p>
-    <p><strong>chord: </strong>simultaneous multiple pitches if connected by "-"</p>
+    <p><strong>chord: </strong>simultaneous pitches if connected by "-"</p>
     <p><strong>voicing: </strong>choose nearest higher note  if number omitted</p>
     <p><strong>percussion: </strong>percussion name see reference (default b)</p>
     <p><strong>rest: </strong>rest current note by "."</p>
@@ -133,6 +133,26 @@
     <br>
     <h4>Percussion</h4>
     <div id="percussionList" class="code-list"></div>
+  </div>
+  <div id="savePanel" class="side-panel">
+    <h3>Save</h3>
+    <label class="field-label" for="fileName">File name</label>
+    <input id="fileName" class="text-input" type="text" value="composition" spellcheck="false" autocomplete="off">
+    <div class="field-label">File type</div>
+    <div class="example-list">
+      <div class="example-item save-option" data-format="midi" data-ext="mid">
+        <div class="example-name">MIDI</div>
+        <div class="example-desc">composition.mid</div>
+      </div>
+      <div class="example-item save-option" data-format="wave" data-ext="wav">
+        <div class="example-name">Audio</div>
+        <div class="example-desc">composition.wav</div>
+      </div>
+      <div class="example-item save-option" data-format="text" data-ext="txt">
+        <div class="example-name">Notation</div>
+        <div class="example-desc">composition.txt</div>
+      </div>
+    </div>
   </div>
 </body>
 </html>

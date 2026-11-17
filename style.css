@@ -383,3 +383,45 @@ textarea::-webkit-scrollbar-thumb:hover {
   color: #6a6a6a;
   font-size: 0.75rem;
 }
+
+/* Save panel */
+.field-label {
+  display: block;
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.text-input {
+  width: 100%;
+  background: #1e1e1e;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  color: #d4d4d4;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+  transition: border-color 0.2s;
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: #569cd6;
+}
+
+.save-option.busy {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.save-option {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.save-option .example-name {
+  margin-bottom: 0;
+}
