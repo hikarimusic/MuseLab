@@ -1,5 +1,4 @@
 let instruments = {};
-let panners = {};
 let isPlaying = false;
 let tempoMap = [];
 let scheduledNotes = [];
@@ -349,9 +348,6 @@ function animateRuler() {
 async function loadInstrument(programNumber, panValue = 0.5, isPerc = false, progress = '') {
     const key = `${isPerc ? 'perc' : programNumber}_${panValue}`;
     if (instruments[key]) return;
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
     showStatus(`Loading ${instNames[programNumber]} ${progress}`);
     const panner = audioContext.createStereoPanner();
     panner.pan.value = panValue;
@@ -496,9 +492,15 @@ function encodeTrack(events) {
     return [...new TextEncoder().encode('MTrk'), ...writeLen(data.length, 4), ...data];
 }
 
-function buildMidi(sections) {
+function buildMidi() {
+    const notation = document.getElementById('notation').value;
+    const sections = parseNotation(notation);
+    if (Object.keys(sections).length === 0) {
+        showError('No sections found');
+        return;
+    }
     const PPQ = 480;
-    const keySharps = [0, -5, 2, -3, 4, -1, 6, 1, -4, 3, -2, 5];
+    const keySharps = [0, -5, 2, -3, 4, -1, -6, 1, -4, 3, -2, 5];
     const enc = new TextEncoder();
     const offsets = {};
     let offset = 0;
@@ -605,90 +607,95 @@ function encodeWav(buffer) {
     return new Uint8Array(view.buffer);
 }
 
-// ---- Render the whole composition offline and return a WAV Blob ----
-// Notes are scheduled in small chunks while rendering runs (via ctx.suspend),
-// so the audio graph stays small and progress can be reported.
-async function buildAudio(sections, { sampleRate = 44100, tail = 2, step = 1, onProgress = () => {} } = {}) {
-    tempoMap = buildTempoMap(sections);
-    const totalLen = Object.values(sections).reduce((s, sec) => s + sec.length, 0);
-    const seconds = beatToSec(totalLen) + tail;          // tail lets the last notes ring out
-    const ctx = new OfflineAudioContext(2, Math.ceil(seconds * sampleRate), sampleRate);
 
-    // 1. Collect the tracks that will actually make sound, and the instruments they need
-    const active = [];
+
+async function loadPlayer(ctx, players, programNumber, panValue = 0.5, isPerc = false, progress = '') {
+    const key = `${isPerc ? 'perc' : programNumber}_${panValue}`;
+    if (players[key]) return;
+    showStatus(`Loading ${instNames[programNumber]} ${progress}`);
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = panValue;
+    panner.connect(ctx.destination);
+    let url;
+    if (isPerc) {
+        url = 'https://hikarimusic.github.io/MuseLab/Percussion/percussion-mp3.js';
+    } 
+    else {
+        const instName = instNames[programNumber].toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/).join('_');
+        url = `https://hikarimusic.github.io/MuseLab/FluidR3_GM/${instName}-mp3.js`;
+    }
+    try {
+        players[key] = await Soundfont.instrument(ctx, url, { destination: panner });
+    } 
+    catch (e) {
+        console.warn(`Failed to load ${instNames[programNumber]}, using apiano`);
+        players[key] = await Soundfont.instrument(ctx, 'acoustic_grand_piano', { destination: panner });
+    }
+}
+
+async function buildAudio() {
+    const notation = document.getElementById('notation').value;
+    const sections = parseNotation(notation);
+    if (Object.keys(sections).length === 0) {
+        showError('No sections found');
+        return;
+    }
+    const sampleRate = 44100, tail = 2, step = 1, margin = 0.1;
+    tempoMap = buildTempoMap(sections);
+    const beats = Object.values(sections).reduce((sum, section) => sum + section.length, 0);
+    const seconds = beatToSec(beats) + tail;
+    const ctx = new OfflineAudioContext(2, Math.ceil(seconds * sampleRate), sampleRate);
+    const players = {};
     const needed = new Map();
-    let sectionBeatStart = 0;
     for (const section of Object.values(sections)) {
         for (const track of Object.values(section.tracks)) {
-            if (track.gain === 0 || !track.events.length) continue;   // muted / solo'd out
             const key = `${track.isPerc ? 'perc' : track.inst}_${track.pan}`;
             if (!needed.has(key)) needed.set(key, track);
-            active.push({ track, key, offset: sectionBeatStart });
         }
-        sectionBeatStart += section.length;
     }
-
-    // 2. Load instruments (loading phase = first 30% of the progress bar)
-    const players = {};
     let loaded = 0;
-    for (const [key, track] of needed) {
-        onProgress(0.3 * loaded / needed.size, `Loading ${instNames[track.inst]} (${loaded + 1}/${needed.size})`);
-        const panner = ctx.createStereoPanner();
-        panner.pan.value = track.pan;
-        panner.connect(ctx.destination);
-        let url;
-        if (track.isPerc) {
-            url = 'https://hikarimusic.github.io/MuseLab/Percussion/percussion-mp3.js';
-        }
-        else {
-            const instName = instNames[track.inst].toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().split(/\s+/).join('_');
-            url = `https://hikarimusic.github.io/MuseLab/FluidR3_GM/${instName}-mp3.js`;
-        }
-        try {
-            players[key] = await Soundfont.instrument(ctx, url, { destination: panner });
-        } catch {
-            players[key] = await Soundfont.instrument(ctx, 'acoustic_grand_piano', { destination: panner });
-        }
+    for (const track of needed.values()) {
         loaded++;
+        await loadPlayer(ctx, players, track.inst, track.pan, track.isPerc || false, `(${loaded}/${needed.size})`);
     }
-
-    // 3. Build a time-sorted list of every note
     const jobs = [];
-    for (const { track, key, offset } of active) {
-        for (const event of track.events) {
-            const beat = offset + event.time;
-            const start = beatToSec(beat);
-            const duration = beatToSec(beat + event.duration) - start;
-            for (const pitch of event.pitches) {
-                jobs.push({ player: players[key], pitch, start, duration, gain: track.gain });
-            }
-        }
-    }
+    let sectionBeatStart = 0;
+    Object.values(sections).forEach(section => {
+        Object.values(section.tracks).forEach(track => {
+            const key = `${track.isPerc ? 'perc' : track.inst}_${track.pan}`;
+            const player = players[key];
+            if (!player) return;
+            track.events.forEach(event => {
+                const eventBeat = sectionBeatStart + event.time;
+                const eventSec = beatToSec(eventBeat);
+                const duration = beatToSec(eventBeat + event.duration) - eventSec;
+                event.pitches.forEach(pitch => {
+                    jobs.push({ player, pitch, start: eventSec, duration, gain: track.gain });
+                });
+            });
+        });
+        sectionBeatStart += section.length;
+    });
     jobs.sort((a, b) => a.start - b.start);
-
     let next = 0;
     const scheduleBefore = t => {
         while (next < jobs.length && jobs[next].start < t) {
-            const j = jobs[next++];
-            j.player.play(j.pitch, j.start, { duration: j.duration, gain: j.gain });
+            const job = jobs[next++];
+            job.player.play(job.pitch, job.start, { duration: job.duration, gain: job.gain });
         }
     };
-
-    // 4. Schedule the first chunk, then pause every `step` seconds to add the next one
-    const margin = 0.1;                                   // schedule a little ahead of the playhead
     scheduleBefore(step + margin);
     for (let t = step; t < seconds; t += step) {
         ctx.suspend(t).then(() => {
             scheduleBefore(t + step + margin);
-            onProgress(0.3 + 0.7 * t / seconds, `Rendering ${Math.round(100 * t / seconds)}%`);
+            showStatus(`Rendering ${Math.round(100 * t / seconds)}%`);
             ctx.resume();
         });
     }
-
-    onProgress(0.3, 'Rendering 0%');
+    showStatus('Rendering 0%');
     const buffer = await ctx.startRendering();
-    onProgress(1, 'Encoding WAV...');
-    await new Promise(r => setTimeout(r, 0));             // let the status repaint before encoding
+    showStatus('Encoding WAV...');
+    await new Promise(r => setTimeout(r, 0));
     return encodeWav(buffer);
 }
 
@@ -736,14 +743,12 @@ async function save(format) {
             ext = 'txt';
         }
         else if (format === 'midi') {
-            data = buildMidi(parseNotation(notation));
+            data = buildMidi();
             type = 'audio/midi';
             ext = 'mid';
         }
         else if (format === 'wave') {
-            data = await buildAudio(parseNotation(notation), {
-                onProgress: (fraction, message) => showStatus(message)
-            });
+            data = await buildAudio();
             type = 'audio/wav';
             ext = 'wav';
         }
@@ -751,6 +756,7 @@ async function save(format) {
             showError(`Unknown format "${format}"`);
             return;
         }
+        if (!data) return;
         downloadBlob(new Blob([data], { type }), `${name}.${ext}`);
         showStatus(`Saved ${name}.${ext}`);
         setTimeout(hideStatus, 2000);
@@ -878,7 +884,7 @@ document.querySelectorAll('.save-option').forEach(btn => {
 function updateSaveLabels() {
     const name = getFileName();
     document.querySelectorAll('.save-option').forEach(btn => {
-        btn.querySelector('.example-desc').textContent = `${name}.${btn.dataset.ext}`;
+        btn.querySelector('.save-desc').textContent = `${name}.${btn.dataset.ext}`;
     });
 }
 

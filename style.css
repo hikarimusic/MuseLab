@@ -411,17 +411,42 @@ textarea::-webkit-scrollbar-thumb:hover {
   border-color: #569cd6;
 }
 
-.save-option.busy {
-  opacity: 0.5;
-  pointer-events: none;
+/* Save options */
+.save-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .save-option {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  background: #1e1e1e;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.save-option .example-name {
-  margin-bottom: 0;
+.save-option:hover {
+  background: #2d2d30;
+  border-color: #569cd6;
+}
+
+.save-option.busy {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.save-name {
+  color: #4ec9b0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.save-desc {
+  color: #999;
+  font-size: 0.8rem;
 }
