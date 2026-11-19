@@ -1,5 +1,6 @@
 let instruments = {};
 let isPlaying = false;
+let isSaving = false;
 let tempoMap = [];
 let scheduledNotes = [];
 let audioContext = null;
@@ -8,7 +9,6 @@ let playbackStartBeat = 0;
 let totalBeats = 0;
 let playbackStartTime = 0;
 let playbackAnimationId = null;
-let currentTempo = 120;
 let endTimeout = null;
 
 // Utility
@@ -33,15 +33,29 @@ function hideStatus() {
     document.getElementById('status').classList.remove('visible');
 }
 
-function saveDraft(text) {
+function saveNotation(text) {
     try {
         localStorage.setItem('muselab.notation', text);
     } catch {}
 }
 
-function loadDraft() {
+function loadNotation() {
     try {
         return localStorage.getItem('muselab.notation');
+    } catch {
+        return null;
+    }
+}
+
+function saveFileName(name) {
+    try {
+        localStorage.setItem('muselab.fileName', name);
+    } catch {}
+}
+
+function loadFileName() {
+    try {
+        return localStorage.getItem('muselab.fileName');
     } catch {
         return null;
     }
@@ -576,26 +590,35 @@ function buildMidi() {
     return new Uint8Array(data);
 }
 
-
-
-
-
 function encodeWav(buffer) {
     const ch = buffer.numberOfChannels, sr = buffer.sampleRate, n = buffer.length;
     const bytes = n * ch * 2;
     const view = new DataView(new ArrayBuffer(44 + bytes));
-    const str = (o, s) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
-    str(0, 'RIFF'); view.setUint32(4, 36 + bytes, true); str(8, 'WAVE');
-    str(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
-    view.setUint16(22, ch, true); view.setUint32(24, sr, true);
-    view.setUint32(28, sr * ch * 2, true); view.setUint16(32, ch * 2, true); view.setUint16(34, 16, true);
-    str(36, 'data'); view.setUint32(40, bytes, true);
-
-    const chans = Array.from({ length: ch }, (_, i) => buffer.getChannelData(i));
+    view.setUint32(0, 0x52494646, false);
+    view.setUint32(4, 36 + bytes, true);
+    view.setUint32(8, 0x57415645, false);
+    view.setUint32(12, 0x666d7420, false);
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, ch, true);
+    view.setUint32(24, sr, true);
+    view.setUint32(28, sr * ch * 2, true);
+    view.setUint16(32, ch * 2, true);
+    view.setUint16(34, 16, true);
+    view.setUint32(36, 0x64617461, false);
+    view.setUint32(40, bytes, true);
+    const chans = [];
+    for (let c = 0; c < ch; c++) {
+        chans.push(buffer.getChannelData(c));
+    }
     let peak = 0;
-    for (const c of chans) for (let i = 0; i < n; i++) { const a = Math.abs(c[i]); if (a > peak) peak = a; }
+    for (let i = 0; i < n; i++) {
+        for (let c = 0; c < ch; c++) {
+            const a = Math.abs(chans[c][i]);
+            if (a > peak) peak = a;
+        }
+    }
     const scale = peak > 1 ? 1 / peak : 1;
-
     let o = 44;
     for (let i = 0; i < n; i++) {
         for (let c = 0; c < ch; c++) {
@@ -606,8 +629,6 @@ function encodeWav(buffer) {
     }
     return new Uint8Array(view.buffer);
 }
-
-
 
 async function loadPlayer(ctx, players, programNumber, panValue = 0.5, isPerc = false, progress = '') {
     const key = `${isPerc ? 'perc' : programNumber}_${panValue}`;
@@ -699,7 +720,6 @@ async function buildAudio() {
     return encodeWav(buffer);
 }
 
-
 function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -711,17 +731,6 @@ function downloadBlob(blob, filename) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function getFileName() {
-    const input = document.getElementById('fileName');
-    let name = input.value.trim()
-        .replace(/\.(mid|midi|wav|txt)$/i, '')      // drop an extension the user typed
-        .replace(/[\\/:*?"<>|]/g, '_');              // characters not allowed in file names
-    if (!name) name = 'composition';
-    return name;
-}
-
-let isSaving = false;
-
 async function save(format) {
     if (isSaving) return;
     const notation = document.getElementById('notation').value;
@@ -729,11 +738,16 @@ async function save(format) {
         showError('Nothing to save');
         return;
     }
+    const name = document.getElementById('fileName').value.trim()
+        .replace(/\.(mid|midi|wav|txt)$/i, '')
+        .replace(/[\\/:*?"<>|]/g, '_');
+    if (!name.trim()) {
+        showError('Invalid file name');
+        return;
+    }
     hideError();
-    const name = getFileName();
-    try { localStorage.setItem('muselab.fileName', name); } catch {}
-    const buttons = document.querySelectorAll('.save-option');
     isSaving = true;
+    const buttons = document.querySelectorAll('.save-option');
     buttons.forEach(b => b.classList.add('busy'));
     try {
         let data, type, ext;
@@ -752,10 +766,6 @@ async function save(format) {
             type = 'audio/wav';
             ext = 'wav';
         }
-        else {
-            showError(`Unknown format "${format}"`);
-            return;
-        }
         if (!data) return;
         downloadBlob(new Blob([data], { type }), `${name}.${ext}`);
         showStatus(`Saved ${name}.${ext}`);
@@ -771,6 +781,9 @@ async function save(format) {
         buttons.forEach(b => b.classList.remove('busy'));
     }
 }
+
+
+
 
 async function loadExample(filepath) {
     try {
@@ -882,22 +895,19 @@ document.querySelectorAll('.save-option').forEach(btn => {
 });
 
 function updateSaveLabels() {
-    const name = getFileName();
+    const name = document.getElementById('fileName').value.trim()
+        .replace(/\.(mid|midi|wav|txt)$/i, '')
+        .replace(/[\\/:*?"<>|]/g, '_');
     document.querySelectorAll('.save-option').forEach(btn => {
         btn.querySelector('.save-desc').textContent = `${name}.${btn.dataset.ext}`;
     });
 }
 
 document.getElementById('fileName').addEventListener('input', (e) => {
+    saveFileName(e.target.value);
     updateSaveLabels();
-    try { localStorage.setItem('muselab.fileName', e.target.value); } catch {}
+    hideError();
 });
-
-try {
-    const savedName = localStorage.getItem('muselab.fileName');
-    if (savedName) document.getElementById('fileName').value = savedName;
-} catch {}
-updateSaveLabels();
 
 document.getElementById('guideBtn').addEventListener('click', () => {
     togglePanel('guidePanel');
@@ -910,7 +920,7 @@ document.getElementById('exampleBtn').addEventListener('click', () => {
 document.getElementById('timeline').addEventListener('click', handleTimelineClick);
 
 document.getElementById('notation').addEventListener('input', (e) => {
-    saveDraft(e.target.value);
+    saveNotation(e.target.value);
     hideError();
     clearTimeout(window.timelineUpdateTimeout);
     window.timelineUpdateTimeout = setTimeout(() => {
@@ -972,8 +982,7 @@ document.querySelectorAll('#exampleList .example-item').forEach(item => {
     });
 });
 
-
-document.getElementById('notation').value = loadDraft() ?? `a1: 10 90 d4
+document.getElementById('notation').value = loadNotation() ?? `a1: 10 90 d4
 - main: flute 1 0
 - chord: strings1 .5 0
 - drum: perc .5 0
@@ -987,5 +996,9 @@ a1.chord: 1
 a1.drum: 1
 - | 1 1 .5 .5 1 | 1 1 .5 .5 1 |
 - | b s  b  b s | b s  b  b s |`;
+
+document.getElementById('fileName').value = loadFileName() ?? 'composition';
+updateSaveLabels();
+
 populateGuide();
 renderTimeline();
