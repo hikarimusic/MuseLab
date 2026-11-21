@@ -11,6 +11,7 @@ let playbackStartTime = 0;
 let playbackAnimationId = null;
 let endTimeout = null;
 let timelineTimeout = null;
+let skipBeautify = false;
 
 // Utility
 
@@ -152,7 +153,64 @@ function buildEvents(track, start, slots, key) {
     });
 }
 
+function beautifyNotation(text) {
+    const lines = text.split('\n').map(l => l.replace(/^[ \t]+/, ''));
+    let inTrack = false;
+    let i = 0, j = 0;
+    while (i < lines.length) {
+        if (!lines[i].trim() || lines[i].startsWith('//')) {
+            i++;
+            continue;
+        }
+        if (!lines[i].startsWith('-')) {
+            inTrack = lines[i].includes('.');
+            i++;
+            continue;
+        }
+        j = i;
+        while (j < lines.length && lines[j].startsWith('-')) j++;
+        if (inTrack) {
+            const rows = lines.slice(i, j).map(l => l.substring(1).replace(/\|/g, ' | ').split(/\s+/).filter(t => t));
+            const widths = [];
+            rows.forEach(r => r.forEach((t, k) => widths[k] = Math.max(widths[k] ?? 0, t.length)));
+            rows.forEach((r, k) => {
+                if (!r.length) return;
+                const tail = lines[i + k].match(/\s*$/)[0];
+                lines[i + k] = '- ' + r.map((t, n) => t.padStart(widths[n])).join(' ') + tail;
+            });
+        }
+        i = j;
+    }
+    return lines.join('\n');
+}
+
+function applyBeautify(text) {
+    const el = document.getElementById('notation');
+    const pretty = beautifyNotation(text);
+    if (skipBeautify || pretty === text) return pretty;
+    const isSpace = c => c === ' ' || c === '\t';
+    const pos = el.selectionStart;
+    const count = text.slice(0, pos).replace(/[ \t]/g, '').length;
+    let p = 0;
+    for (let n = count; n > 0; p++) if (!isSpace(pretty[p])) n--;
+    if (isSpace(text[pos - 1])) while (isSpace(pretty[p])) p++;
+    const scroll = el.scrollTop;
+    if (document.activeElement === el) {
+        let a = 0, b = 0;
+        while (a < text.length && text[a] === pretty[a]) a++;
+        while (b < Math.min(text.length, pretty.length) - a && text.at(-1 - b) === pretty.at(-1 - b)) b++;
+        el.setSelectionRange(a, text.length - b);
+        if (!document.execCommand('insertText', false, pretty.slice(a, pretty.length - b))) el.value = pretty;
+    }
+    else el.value = pretty;
+    el.setSelectionRange(p, p);
+    el.scrollTop = scroll;
+    saveNotation(pretty);
+    return pretty;
+}
+
 function parseNotation(text) {
+    text = applyBeautify(text);
     const lines = text.split('\n').filter(l => l.trim() && !l.trim().startsWith('//'));
     const sections = {};
     let currentSection = null, currentTrack = null, currentStart = null, currentSlots = null;
@@ -421,6 +479,7 @@ async function play() {
         }
     }
     let loaded = 0;
+    showStatus(`Loading instruments (0/${needed.size})`);
     await Promise.all([...needed.values()].map(async track => {
         await loadInstrument(track.inst, track.pan, track.isPerc || false);
         showStatus(`Loading instruments (${++loaded}/${needed.size})`);
@@ -674,6 +733,7 @@ async function buildAudio() {
         }
     }
     let loaded = 0;
+    showStatus(`Loading instruments (0/${needed.size})`);
     await Promise.all([...needed.values()].map(async track => {
         await loadPlayer(ctx, players, track.inst, track.pan, track.isPerc || false);
         showStatus(`Loading instruments (${++loaded}/${needed.size})`);
@@ -847,6 +907,8 @@ document.getElementById('timeline').addEventListener('click', handleTimelineClic
 
 document.getElementById('notation').addEventListener('input', (e) => {
     saveNotation(e.target.value);
+    skipBeautify = e.inputType === 'historyUndo' || e.inputType === 'historyRedo';
+    if (skipBeautify) e.target.setSelectionRange(e.target.selectionEnd, e.target.selectionEnd);
     hideError();
     clearTimeout(timelineTimeout);
     timelineTimeout = setTimeout(renderTimeline, 500);

@@ -1,16 +1,28 @@
-a1: 32 120 bf3
-- violin1: violin
-- violin2: violin
-- viola: viola 
-- cello: cello
-- contrabass: contra
+a1: 32 130 bf3
+- violin1: violin .8 -.6
+- violin2: violin .7 -.3
+- viola: viola .7 .2
+- cello: cello .9 .4
+- contrabass: contra .9 .6
+- trumpet: trumpet .6 .2
+- trombone1: trombone .5 .4
+- trombone2: trombone .5 .5
+- horn1: fhorn .6 -.4
+- horn2: fhorn .6 -.3
+- oboe: oboe .6 .1
+- bassoon: bassoon .6 .2
+- clarinet1: clarinet .5 -.1
+- clarinet2: clarinet .5 -.2
+- piccolo: piccolo .5 -.3
+- flute1: flute .6 -.1
+- flute2: flute .6 -.2
 
 a1.violin1:
 - | 1.5 .5 1.5 .5 | 1.5 .25 .25 2 | 1.5 .25 .25 2 | .25 .25 .25 .25 .75 .25 |  2 |
-- |  e4  a  c5 a4 | gs   a    b a |   f   g   a e |   d   c   c  b3   b  e4 | a3 |
+- |  e4  a  c5 a4 |  gs   a   b a |   f   g   a e |   d   c   c  b3   b  e4 | a3 |
 a1.violin2:
 - | 1.5 .5 1.5 .5 | 1.5 .25 .25 2 | 1.5 .25 .25 2 | .25 .25 .25 .25 .75 .25 |  2 |
-- |  e4  a  c5 a4 | gs   a    b a |   f   g   a e |   d   c   c  b3   b  e4 | a3 |
+- |  e4  a  c5 a4 |  gs   a   b a |   f   g   a e |   d   c   c  b3   b  e4 | a3 |
 a1.viola:
 - | .5   .5 .5 .5 .5 .5 .5 .5 | .5    1 .5 .5   .5 .5 .5 | .5    1 .5 .5   .5 .5 .5 | .5   .5 .5 .5 .5   .5 .5 .5 |
 - |  . e3-c  .  =  .  =  .  = |  . f3-d  =  . e3-c  .  = |  . f3-d  =  . e3-c  .  = |  . e3-d  .  =  . e3-c  .  = |
@@ -18,5 +30,26 @@ a1.cello:
 - | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |  .5  .5 .5 .5 .5 .5 .5 .5 |
 - | a2 a3  e  a a2 a3  e  a | a2 a3  d  a a2 a3  e  a | a2 a3  d  a a2 a3  e  a | gs2 gs3  e gs a2 a3  e  a |
 a1.contrabass:
-- | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |  .5  .5 .5 .5 .5 .5 .5 .5 |
-- | a2  .  e  .  a  .  e  . |  a  .  d  .  a  .  e  . |  a  .  d  .  a  .  e  . |  gs   .  e  .  a  .  e  . |
+- | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
+- | a2  .  e  .  a  .  e  . |  a  .  d  .  a  .  e  . |  a  .  d  .  a  .  e  . | gs  .  e  .  a  .  e  . |
+a1.trombone1:
+- | 4 | .5    1 .5   .5 1.5 | .5    1 .5   .5 1.5 | 4 | 
+- | . |  . a3-f  = c4-e   . |  . f3-a  = c4-e   . | . |
+a1.trombone2:
+- | 4 | .5  1 .5 .5 1.5 | .5 1 .5 .5 1.5 | .5 .5 .5 .5 .5 1.5 |
+- | . |  . d3  =  a   . |  . d  =  a   . | gs  .  e  .  a   . |
+a1.horn1:
+- | .5   .5 .5 .5 .5 .5 .5 .5 | .5    1 .5 .5   .5 .5 .5 | .5    1 .5 .5   .5 .5 .5 | .5    .5 .5   .5 .5   .5 .5 .5 |
+- |  . a3-c  .  =  .  =  .  = |  . a3-d  =  . a3-c  .  = |  . a3-d  =  . a3-c  .  = |  . gs3-d  . b3-d  . a3-c  .  = |
+a1.horn2:
+- | .5 .5 .5 .5 .5 .5 .5 .5 | .5 1 .5 .5 .5 .5 .5 | .5 1 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
+- |  . e3  .  =  .  =  .  = |  . f  =  .  e  .  = |  . f  =  .  e  .  = |  .  =  .  =  .  =  .  = |
+a1.bassoon:
+- | .5   .5 .5  .5 .5   .5 .5  .5 | .5   .5 .5  .5 .5   .5 .5  .5 | .5   .5 .5  .5 .5   .5 .5  .5 | .5 .5 .5 .5 .5   .5 .5  .5 |
+- | a2 a3-c  e a-c a2 a3-c  e a-c | a2 a3-d  f a-d a2 a3-c  e a-c | a2 f3-c  f f-c a2 a3-c  e a-c | gs e4 e3  b a2 a3-c  e a-c |
+a1.clarinet1:
+- | 1.5 .5 1.5 .5 | 1.5 .25 .25 2 | 1.5 .25 .25 2 | .25 .25 .25 .25 .75 .25 |  2 |
+- |  e4  a  c5 a4 |  gs   a   b a |   f   g   a e |   d   c   c  b3   b  e4 | a3 |
+a1.clarinet2:
+- | 1.5 .5 1.5 .5 | 1.5 .25 .25 2 | 1.5 .25 .25 2 | .25 .25 .25 .25 .75 .25 |  2 |
+- |  e4  a  c5 a4 |  gs   a   b a |   d   e   f c |   d   c   c  b3   b  e4 | a3 |
