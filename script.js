@@ -1,15 +1,16 @@
 let instruments = {};
-let isPlaying = false;
-let isSaving = false;
 let tempoMap = [];
 let scheduledNotes = [];
+let isPlaying = false;
+let isSaving = false;
 let audioContext = null;
 let audioNeedsReset = false;
-let playbackStartBeat = 0;
 let totalBeats = 0;
+let playbackStartBeat = 0;
 let playbackStartTime = 0;
 let playbackAnimationId = null;
 let endTimeout = null;
+let timelineTimeout = null;
 
 // Utility
 
@@ -84,7 +85,7 @@ function parsePitch(pitchStr, key, isPerc) {
         if (!(pitchStr.toLowerCase() in percMap)) return null;
         return percMap[pitchStr.toLowerCase()];
     }
-    const match = pitchStr.toLowerCase().match(/^([a-g][sb]?)(\d*)$/);
+    const match = pitchStr.toLowerCase().match(/^([a-g][sf]?)(\d*)$/);
     if (!match) return null;
     const [, pitch, octave] = match;
     const midiPitch = (parseInt(octave || '4') + 1) * 12 + pitchMap[pitch];
@@ -167,7 +168,7 @@ function parseNotation(text) {
                 showError(`Invalid tempo "${tempoStr}" in section "${name}"`);
                 break;
             }
-            if (keyStr !== undefined && !/^[a-g][sb]?\d*$/i.test(keyStr)) {
+            if (keyStr !== undefined && !/^[a-g][sf]?\d*$/i.test(keyStr)) {
                 showError(`Invalid key "${keyStr}" in section "${name}"`);
                 break;
             }
@@ -233,7 +234,7 @@ function parseNotation(text) {
             if (/^\d*\.?\d+$/.test(first)) {
                 field = 'duration';
             } 
-            else if (/^[a-g][sb]?\d$/i.test(first.split('-')[0]) || track.isPerc) {
+            else if (/^[a-g][sf]?\d$/i.test(first.split('-')[0]) || track.isPerc) {
                 field = 'pitches';
             } 
             else {
@@ -359,10 +360,9 @@ function animateRuler() {
     playbackAnimationId = requestAnimationFrame(animateRuler);
 }
 
-async function loadInstrument(programNumber, panValue = 0.5, isPerc = false, progress = '') {
+async function loadInstrument(programNumber, panValue = 0, isPerc = false, progress = '') {
     const key = `${isPerc ? 'perc' : programNumber}_${panValue}`;
     if (instruments[key]) return;
-    showStatus(`Loading ${instNames[programNumber]} ${progress}`);
     const panner = audioContext.createStereoPanner();
     panner.pan.value = panValue;
     panner.connect(audioContext.destination);
@@ -421,10 +421,10 @@ async function play() {
         }
     }
     let loaded = 0;
-    for (const track of needed.values()) {
-        loaded++;
-        await loadInstrument(track.inst, track.pan, track.isPerc || false, `(${loaded}/${needed.size})`);
-    }
+    await Promise.all([...needed.values()].map(async track => {
+        await loadInstrument(track.inst, track.pan, track.isPerc || false);
+        showStatus(`Loading instruments (${++loaded}/${needed.size})`);
+    }));
     hideStatus();
     tempoMap = buildTempoMap(sections);
     const startSec = beatToSec(playbackStartBeat);
@@ -630,10 +630,9 @@ function encodeWav(buffer) {
     return new Uint8Array(view.buffer);
 }
 
-async function loadPlayer(ctx, players, programNumber, panValue = 0.5, isPerc = false, progress = '') {
+async function loadPlayer(ctx, players, programNumber, panValue = 0, isPerc = false, progress = '') {
     const key = `${isPerc ? 'perc' : programNumber}_${panValue}`;
     if (players[key]) return;
-    showStatus(`Loading ${instNames[programNumber]} ${progress}`);
     const panner = ctx.createStereoPanner();
     panner.pan.value = panValue;
     panner.connect(ctx.destination);
@@ -675,10 +674,10 @@ async function buildAudio() {
         }
     }
     let loaded = 0;
-    for (const track of needed.values()) {
-        loaded++;
-        await loadPlayer(ctx, players, track.inst, track.pan, track.isPerc || false, `(${loaded}/${needed.size})`);
-    }
+    await Promise.all([...needed.values()].map(async track => {
+        await loadPlayer(ctx, players, track.inst, track.pan, track.isPerc || false);
+        showStatus(`Loading instruments (${++loaded}/${needed.size})`);
+    }));
     const jobs = [];
     let sectionBeatStart = 0;
     Object.values(sections).forEach(section => {
@@ -731,6 +730,19 @@ function downloadBlob(blob, filename) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function getFileName() {
+    return document.getElementById('fileName').value.trim()
+        .replace(/\.(mid|midi|wav|txt)$/i, '')
+        .replace(/[\\/:*?"<>|]/g, '_');
+}
+
+function updateSaveLabels() {
+    const name = getFileName();
+    document.querySelectorAll('.save-option').forEach(btn => {
+        btn.querySelector('.save-desc').textContent = `${name}.${btn.dataset.ext}`;
+    });
+}
+
 async function save(format) {
     if (isSaving) return;
     const notation = document.getElementById('notation').value;
@@ -738,10 +750,8 @@ async function save(format) {
         showError('Nothing to save');
         return;
     }
-    const name = document.getElementById('fileName').value.trim()
-        .replace(/\.(mid|midi|wav|txt)$/i, '')
-        .replace(/[\\/:*?"<>|]/g, '_');
-    if (!name.trim()) {
+    const name = getFileName();
+    if (!name) {
         showError('Invalid file name');
         return;
     }
@@ -782,15 +792,46 @@ async function save(format) {
     }
 }
 
+// Guide
 
+function populateGuide() {
+    const addItem = (list, label, codes, num) => {
+        const p = document.createElement('p');
+        const shortcuts = codes.map(c => `<code>${c}</code>`).join(', ');
+        p.innerHTML = `${label}: ${shortcuts} <span class="midi-num">(${num})</span>`;
+        list.appendChild(p);
+    };
+    const invert = map => {
+        const out = {};
+        Object.entries(map).forEach(([k, v]) => (out[v] ??= []).push(k));
+        return out;
+    };
+    const instList = document.getElementById('instrumentList');
+    const instCodes = invert(instMap);
+    Object.entries(instNames).forEach(([num, name]) => {
+        addItem(instList, name, instCodes[num] ?? [], num);
+    });
+    const pitchList = document.getElementById('pitchList');
+    for (let octave = 0; octave <= 8; octave++) {
+        Object.entries(pitchMap).forEach(([pitch, offset]) => {
+            const num = (octave + 1) * 12 + offset;
+            if (num > 127) return;
+            const label = pitch[0].toUpperCase() + pitch.slice(1).replace('s', '#').replace('f', 'b') + octave;
+            addItem(pitchList, label, [pitch + octave], num);
+        });
+    }
+    const percList = document.getElementById('percussionList');
+    const percCodes = invert(percMap);
+    Object.entries(percNames).forEach(([num, name]) => {
+        addItem(percList, name, percCodes[num] ?? [], num);
+    });
+}
 
+// Example
 
 async function loadExample(filepath) {
     try {
         const response = await fetch(filepath);
-        if (!response.ok) {
-            throw new Error('Example file not found');
-        }
         const content = await response.text();
         document.getElementById('notation').value = content;
         renderTimeline();
@@ -800,113 +841,33 @@ async function loadExample(filepath) {
     }
 }
 
-function populateGuide() {
-    const midiToInstrumentShortcut = {};
-    Object.entries(instMap).forEach(([shortcut, midi]) => {
-        if (!midiToInstrumentShortcut[midi]) {
-            midiToInstrumentShortcut[midi] = [];
-        }
-        midiToInstrumentShortcut[midi].push(shortcut);
-    });
-    
-    const instrumentListEl = document.getElementById('instrumentList');
-    Object.entries(instNames).forEach(([index, name]) => {
-        index = Number(index);
-        const shortcuts = midiToInstrumentShortcut[index];
-        const p = document.createElement('p');
-        if (shortcuts && shortcuts.length > 0) {
-            const shortcutStr = shortcuts.map(s => `<code>${s}</code>`).join(', ');
-            p.innerHTML = `${name}: ${shortcutStr} <span class="midi-num">(${index})</span>`;
-        } else {
-            p.innerHTML = `${name}: <span class="midi-num">(${index})</span>`;
-        }
-        instrumentListEl.appendChild(p);
-    });
-    
-    const pitchListEl = document.getElementById('pitchList');
-    const pitchSequence = [
-        { names: ['c'], display: 'C', offset: 0 },
-        { names: ['cs', 'db'], display: ['C#', 'Db'], offset: 1 },
-        { names: ['d'], display: 'D', offset: 2 },
-        { names: ['ds', 'eb'], display: ['D#', 'Eb'], offset: 3 },
-        { names: ['e'], display: 'E', offset: 4 },
-        { names: ['f'], display: 'F', offset: 5 },
-        { names: ['fs', 'gb'], display: ['F#', 'Gb'], offset: 6 },
-        { names: ['g'], display: 'G', offset: 7 },
-        { names: ['gs', 'ab'], display: ['G#', 'Ab'], offset: 8 },
-        { names: ['a'], display: 'A', offset: 9 },
-        { names: ['as', 'bb'], display: ['A#', 'Bb'], offset: 10 },
-        { names: ['b'], display: 'B', offset: 11 }
-    ];
-    
-    for (let octave = 0; octave <= 8; octave++) {
-        pitchSequence.forEach(pitchInfo => {
-            const midiNum = (octave + 1) * 12 + pitchInfo.offset;
-            if (midiNum <= 127) {
-                if (Array.isArray(pitchInfo.display)) {
-                    // Show both sharp and flat on separate lines
-                    pitchInfo.names.forEach((pitchName, idx) => {
-                        const p = document.createElement('p');
-                        p.innerHTML = `${pitchInfo.display[idx]}${octave}: <code>${pitchName}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
-                        pitchListEl.appendChild(p);
-                    });
-                } else {
-                    // Single pitch name
-                    const p = document.createElement('p');
-                    p.innerHTML = `${pitchInfo.display}${octave}: <code>${pitchInfo.names[0]}${octave}</code> <span class="midi-num">(${midiNum})</span>`;
-                    pitchListEl.appendChild(p);
-                }
-            }
-        });
-    }
-    
-    const percussionListEl = document.getElementById('percussionList');
-    const midiToShortcut = {};
-    Object.entries(percMap).forEach(([shortcut, midi]) => {
-        if (!midiToShortcut[midi]) {
-            midiToShortcut[midi] = [];
-        }
-        midiToShortcut[midi].push(shortcut);
-    });
-    
-    Object.entries(percNames).forEach(([midiNum, name]) => {
-        const shortcuts = midiToShortcut[midiNum];
-        const p = document.createElement('p');
-        if (shortcuts && shortcuts.length > 0) {
-            const shortcutStr = shortcuts.map(s => `<code>${s}</code>`).join(', ');
-            p.innerHTML = `${name}: ${shortcutStr} <span class="midi-num">(${midiNum})</span>`;
-        } else {
-            p.innerHTML = `${name}: <span class="midi-num">(${midiNum})</span>`;
-        }
-        percussionListEl.appendChild(p);
-    });
-}
+// Events
 
+document.getElementById('timeline').addEventListener('click', handleTimelineClick);
 
-// Event listeners
+document.getElementById('notation').addEventListener('input', (e) => {
+    saveNotation(e.target.value);
+    hideError();
+    clearTimeout(timelineTimeout);
+    timelineTimeout = setTimeout(renderTimeline, 500);
+});
+
 document.getElementById('playBtn').addEventListener('click', play);
+
 document.getElementById('stopBtn').addEventListener('click', () => stop());
+
 document.getElementById('saveBtn').addEventListener('click', () => {
     togglePanel('savePanel');
 });
-
-document.querySelectorAll('.save-option').forEach(btn => {
-    btn.addEventListener('click', () => save(btn.dataset.format));
-});
-
-function updateSaveLabels() {
-    const name = document.getElementById('fileName').value.trim()
-        .replace(/\.(mid|midi|wav|txt)$/i, '')
-        .replace(/[\\/:*?"<>|]/g, '_');
-    document.querySelectorAll('.save-option').forEach(btn => {
-        btn.querySelector('.save-desc').textContent = `${name}.${btn.dataset.ext}`;
-    });
-}
 
 document.getElementById('fileName').addEventListener('input', (e) => {
     saveFileName(e.target.value);
     updateSaveLabels();
     hideError();
+});
+
+document.querySelectorAll('.save-option').forEach(btn => {
+    btn.addEventListener('click', () => save(btn.dataset.format));
 });
 
 document.getElementById('guideBtn').addEventListener('click', () => {
@@ -917,51 +878,38 @@ document.getElementById('exampleBtn').addEventListener('click', () => {
     togglePanel('examplePanel');
 });
 
-document.getElementById('timeline').addEventListener('click', handleTimelineClick);
-
-document.getElementById('notation').addEventListener('input', (e) => {
-    saveNotation(e.target.value);
-    hideError();
-    clearTimeout(window.timelineUpdateTimeout);
-    window.timelineUpdateTimeout = setTimeout(() => {
-        renderTimeline();
-    }, 500);
+document.querySelectorAll('#exampleList .example-item').forEach(item => {
+    item.addEventListener('click', () => {
+        const filepath = item.getAttribute('data-file');
+        loadExample(filepath);
+    });
 });
 
 document.addEventListener('keydown', (e) => {
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-    const modifier = isMac ? e.metaKey : e.ctrlKey;
-    
+    const modifier = e.ctrlKey || e.metaKey;
+    if (modifier && e.key === 'Enter') {
+        e.preventDefault();
+        if (isPlaying) stop();
+        else play();
+        return;
+    }
     if (modifier && e.key === 's') {
         e.preventDefault();
         togglePanel('savePanel');
         return;
     }
-
-    if (e.key === 'Escape') {
-        closePanels();
-        return;
-    }
-    
-    if (modifier && e.key === 'e') {
-        e.preventDefault();
-        togglePanel('examplePanel');
-        return;
-    }
-    
     if (modifier && e.key === 'g') {
         e.preventDefault();
         togglePanel('guidePanel');
         return;
     }
-    
-    if (modifier && e.key === 'Enter') {
+    if (modifier && e.key === 'e') {
         e.preventDefault();
-        if (isPlaying) {
-            stop();
-        } else {
-            play();
-        }
+        togglePanel('examplePanel');
+        return;
+    }
+    if (e.key === 'Escape') {
+        closePanels();
         return;
     }
 });
@@ -975,30 +923,38 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-document.querySelectorAll('#exampleList .example-item').forEach(item => {
-    item.addEventListener('click', () => {
-        const filepath = item.getAttribute('data-file');
-        loadExample(filepath);
-    });
-});
-
 document.getElementById('notation').value = loadNotation() ?? `a1: 10 90 d4
-- main: flute 1 0
-- chord: strings1 .5 0
-- drum: perc .5 0
+- main: flute 1
+- guitar: dguit .2
+- bass: ebassp .5
+- strings: strings1 .5
+- drum1: perc .5
+- drum2: perc .2
 
 a1.main: 0
 - | .25 .25 .25 .25 | .5 .5 .25 .5 .75 .5 .25 .25 .25 .25 | .5 .5 .25 .5 .75 1.5 |
 - |  f5   e   d   c |  g  g   g  a   g  .   f   e   d   c |  d  d   d  e   e   . |
-a1.chord: 1
+a1.guitar: 1
+- |          1 .5 .5          .5 1 .5 |          1 .5 .5         .5 1 .5 |
+- | a2-e-g-c-e  =  =  f2-c-f-a-c =  = | g2-d-g-b-d  =  = c3-e-g-c-e =  = |
+a1.bass: 1
+- |  1 1 1 1 | 1 1  1 1 |
+- | a1 = f = | g = c2 = |
+a1.strings: 1
 - |        2        2 |        2        2 |
 - | a2-a-c-e f2-f-a-c | g2-g-b-d c3-g-c-e |
-a1.drum: 1
+a1.drum1: 1
 - | 1 1 .5 .5 1 | 1 1 .5 .5 1 |
-- | b s  b  b s | b s  b  b s |`;
+- | b s  b  b s | b s  b  b s |
+a1.drum2: 1
+- |  1 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
+- | c1  - ho  - ho  - ho |  - ho  - ho  - ho  - ho |
+`;
 
 document.getElementById('fileName').value = loadFileName() ?? 'composition';
+
+renderTimeline();
+
 updateSaveLabels();
 
 populateGuide();
-renderTimeline();

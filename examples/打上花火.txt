@@ -1,4 +1,4 @@
-i1: 32 98 gb3
+i1: 32 98 gf3
 - piano1: apiano 1
 - piano2: apiano .5
 - pad: epiano .5

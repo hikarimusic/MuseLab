@@ -1,20 +1,20 @@
 const pitchMap = {
     c:  0,  // C
     cs: 1,  // C#
-    db: 1,  // Db
+    df: 1,  // Db
     d:  2,  // D
     ds: 3,  // D#
-    eb: 3,  // Eb
+    ef: 3,  // Eb
     e:  4,  // E
     f:  5,  // F
     fs: 6,  // F#
-    gb: 6,  // Gb
+    gf: 6,  // Gb
     g:  7,  // G
     gs: 8,  // G#
-    ab: 8,  // Ab
+    af: 8,  // Ab
     a:  9,  // A
     as: 10, // A#
-    bb: 10, // Bb
+    bf: 10, // Bb
     b:  11  // B
 };
 
