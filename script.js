@@ -894,11 +894,24 @@ async function loadExample(filepath) {
         const response = await fetch(filepath);
         const content = await response.text();
         document.getElementById('notation').value = content;
+        saveNotation(content);
         renderTimeline();
         closePanels();
     } catch (error) {
         showError(`Could not load example: ${error.message}`);
     }
+}
+
+function loadExampleFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const name = params.get('example');
+    if (!name) return;
+    const file = `examples/${name}.txt`;
+    const item = document.querySelector(`#exampleList .example-item[data-file="${CSS.escape(file)}"]`);
+    if (item) loadExample(file);
+    else showError(`Example "${name}" not found`);
+    params.delete('example');
+    history.replaceState(null, '', location.pathname);
 }
 
 // Events
@@ -1020,3 +1033,5 @@ renderTimeline();
 updateSaveLabels();
 
 populateGuide();
+
+loadExampleFromUrl();
