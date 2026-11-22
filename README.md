@@ -2,12 +2,14 @@
 
 A text-based music composer that runs in the browser. You write sections, tracks, rhythms and melodies as plain text, play them with General MIDI soundfonts, and export to MIDI, WAV or text.
 
-![MusecLab editor](https://github.com/hikarimusic/MuseLab/raw/main/docs/editor.png)
+![MusecLab editor](https://github.com/hikarimusic/MuseLab/raw/main/docs/screenshot.png)
 
 ## Quick Start
 
-1. Open [MuseLab](https://hikarimusic.github.io/MuseLab/)
-2. Paste this:
+1. Go to [MuseLab](https://hikarimusic.github.io/MuseLab/)
+2. Paste below code
+3. Tap play button
+
 ```
 a1: 10 90 d4
 - main: flute 1
@@ -36,7 +38,6 @@ a1.drum2: 1
 - |  1 .5 .5 .5 .5 .5 .5 | .5 .5 .5 .5 .5 .5 .5 .5 |
 - | c1  - ho  - ho  - ho |  - ho  - ho  - ho  - ho |
 ```
-3. Tap play
 
 ## Notation
 
