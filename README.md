@@ -2,7 +2,7 @@
 
 A text-based music composer that runs in the browser. You write sections, tracks, rhythms and melodies as plain text, play them with General MIDI soundfonts, and export to MIDI, WAV or text.
 
-![MusecLab editor](https://github.com/hikarimusic/MuseLab/raw/main/docs/screenshot.png)
+![MusecLab editor](https://github.com/hikarimusic/MuseLab/raw/main/docs/editor.png)
 
 ## Quick Start
 

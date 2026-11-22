@@ -244,7 +244,7 @@ b1.flute2: 16
 - |  c5   e   a   e   a  c6   e a5 |  gs   a   b a |  . f6  .  e  .  d  .  c | b5  a gs a c6  . |
 
 
-c1a: 16 130 bf3
+c1a: 16
 - violin1: violin .8 -.6
 - violin2: violin .7 -.3
 - viola: viola .7 .2
@@ -323,7 +323,7 @@ c1a.cymbals:
 - |  1  1  2 |  1  1  2 |  1  1  2 |  1  1  2 |
 - | c1 c1 c1 | c1 c1 c1 | c1 c1 c1 | c1 c1 c1 |
 
-c1b: 8 75 bf3
+c1b: 8 75
 - violin1: violin .8 -.6
 - violin2: violin .7 -.3
 - viola: viola .7 .2
@@ -358,7 +358,7 @@ c1b.bassoon:
 - | 4 | .5 .5 .5 .5 .5 .5 .5 .5 |
 - | . | f3 c4 c3 c4 f3 c4 c3  a |
 
-c1c: 8 130 bf3
+c1c: 8 130
 - violin1: violin .8 -.6
 - violin2: violin .7 -.3
 - viola: viola .7 .2
