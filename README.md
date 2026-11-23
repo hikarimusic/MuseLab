@@ -2,7 +2,7 @@
 
 A text-based music composer running in the browser. You write sections, tracks, rhythms and melodies as plain text, play them with General MIDI soundfonts, and export to MIDI, WAV or text.
 
-![MusecLab editor](https://github.com/hikarimusic/MuseLab/raw/main/docs/editor.jpeg)
+![MuseLab editor](https://github.com/hikarimusic/MuseLab/raw/main/docs/editor.jpeg)
 
 ## Quick Start
 
@@ -44,8 +44,8 @@ a1.drum2: 1
 | Element | Syntax | Notes |
 |---|---|---|
 | Section | `name: [length] [tempo] [key]` | Set the section length (in beats), tempo (in bpm), and key (true pitch of `c4`) |
-| Track | `- name: [instrument] [volume] [pan]` | Set the track instrument (use shortcut), volume (0 to 1), and pan (-1 to 1) |
-| Select | `section.track: [offset]` | Select a track to start writing from `offset` (in beats) |
+| Track | `- name: [instrument] [volume] [pan]` | Set the track instrument (use shortcut), volume (0 to 1, add `s` to solo), and pan (-1 to 1) |
+| Select | `section.track: [offset]` | Select a track to start writing from `offset` (in beats, negative allowed for pickups) |
 | Rhythm | `- [duration] [duration] ...` | Write rhythm as a list of durations (`1` = quarter note, `.5` = eight note, `2` = half note, ...) |
 | Melody | `- [pitch] [pitch] ...` | Write melody as a list of pitches (`c4` = middle C, `gs3` = bass G sharp, `bf5` = treble B flat, ...) |
 | Lyric | `- [text] [text] ...` | Write lyric if not rhythm (start with number) or melody (start with letter+number) |
@@ -55,7 +55,7 @@ a1.drum2: 1
 | `c4` | Pitch. Notes without an octave use the octave of preceding note  |
 | `c3-e-g` | Chord. Notes without an octave are placed at next higher pitch |
 | `.` | Rest |
-| `-` | Extend the previous note |
+| `-` | Extend the previous note. Or use `(` `)` to extend specific pitch in a chord |
 | `=` | Repeat the previous note or chord |
 | <code>&#124;</code> | Bar line (optional) |
 
@@ -72,4 +72,4 @@ a1.drum2: 1
 
 - Player: [https://github.com/danigb/soundfont-player](https://github.com/danigb/soundfont-player)
 - Soundfont: [https://github.com/gleitz/midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts)
-- Instrument: [https://github.com/mrbumpy409/GeneralUser-GS/tree/main](https://github.com/mrbumpy409/GeneralUser-GS/tree/main)
+- Instrument: [https://github.com/mrbumpy409/GeneralUser-GS](https://github.com/mrbumpy409/GeneralUser-GS)

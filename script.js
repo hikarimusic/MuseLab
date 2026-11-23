@@ -81,78 +81,6 @@ function togglePanel(panelId) {
 
 // Notation
 
-function parsePitch(pitchStr, key, isPerc) {
-    if (isPerc) {
-        if (!(pitchStr.toLowerCase() in percMap)) return null;
-        return percMap[pitchStr.toLowerCase()];
-    }
-    const match = pitchStr.toLowerCase().match(/^([a-g][sf]?)(\d*)$/);
-    if (!match) return null;
-    const [, pitch, octave] = match;
-    const midiPitch = (parseInt(octave || '4') + 1) * 12 + pitchMap[pitch];
-    return midiPitch - 60 + key;
-}
-
-function buildEvents(track, start, slots, key) {
-    let time = start;
-    let lastEvent = null;
-    let lastPitches = null;
-    let lastOctave = '4';
-    const overlaps = e => e.time + e.duration > start;
-    while (track.events.length && overlaps(track.events.at(-1))) {
-        track.events.pop();
-    }
-    slots.forEach(slot => {
-        if (!/^\d*\.?\d+$/.test(slot.duration)) {
-            showError(`Invalid duration "${slot.duration}" at beat ${time}`);
-            return;
-        }
-        const duration = parseFloat(slot.duration);
-        let pitches = slot.pitches;
-        if (pitches === '-') {
-            if (lastEvent) lastEvent.duration += duration;
-            pitches = null;
-        }
-        else if (pitches === '=') {
-            pitches = lastPitches;
-        }
-        else if (pitches === '.') {
-            pitches = null;
-        }
-        else {
-            let prev = null;
-            pitches = pitches.split('-').map((n, i) => {
-                if (track.isPerc) return parsePitch(n, key, true);
-                const octave = n.match(/\d+$/)?.[0];
-                if (i === 0) {
-                    if (octave) lastOctave = octave;
-                    else n += lastOctave;
-                }
-                else if (!octave && prev !== null) {
-                    let p = parsePitch(n + '0', key);
-                    if (p !== null)  {
-                        while (p <= prev) p += 12;
-                    }
-                    return prev = p;
-                }
-                return prev = parsePitch(n, key);
-            });
-            if (pitches.includes(null)) {
-                showError(`Invalid pitch "${slot.pitches}" at beat ${time}`);
-                pitches = null;
-            }
-        }
-        const lyric = slot.lyric === '.' ? null : slot.lyric;
-        if (duration > 0 && pitches?.length) {
-            const event = {time, duration, pitches, lyric};
-            track.events.push(event);
-            lastEvent = event;
-            lastPitches = pitches;
-        }
-        time += duration;
-    });
-}
-
 function beautifyNotation(text) {
     const lines = text.split('\n').map(l => l.replace(/^[ \t]+/, ''));
     let inTrack = false;
@@ -207,6 +135,91 @@ function applyBeautify(text) {
     el.scrollTop = scroll;
     saveNotation(pretty);
     return pretty;
+}
+
+function parsePitch(pitchStr, key, isPerc) {
+    if (isPerc) {
+        if (!(pitchStr.toLowerCase() in percMap)) return null;
+        return percMap[pitchStr.toLowerCase()];
+    }
+    const match = pitchStr.toLowerCase().match(/^([a-g][sf]?)(\d*)$/);
+    if (!match) return null;
+    const [, pitch, octave] = match;
+    const midiPitch = (parseInt(octave || '4') + 1) * 12 + pitchMap[pitch];
+    return midiPitch - 60 + key;
+}
+
+function buildEvents(track, start, slots, key) {
+    let time = start;
+    let lastEvent = null;
+    let lastPitches = null;
+    let lastOctave = '4';
+    const overlaps = e => e.time + e.duration > start;
+    while (track.events.length && overlaps(track.events.at(-1))) {
+        track.events.pop();
+    }
+    slots.forEach(slot => {
+        if (!/^\d*\.?\d+$/.test(slot.duration)) {
+            showError(`Invalid duration "${slot.duration}" at beat ${time}`);
+            return;
+        }
+        const duration = parseFloat(slot.duration);
+        let pitches = slot.pitches;
+        if (pitches === '-') {
+            if (lastEvent) lastEvent.duration += duration;
+            pitches = null;
+        }
+        else if (pitches === '=') {
+            pitches = lastPitches;
+        }
+        else if (pitches === '.') {
+            pitches = null;
+        }
+        else {
+            let prev = null;
+            const tied = [];
+            pitches = pitches.split('-').map((n, i) => {
+                if (n[0] === '(' && n.at(-1) === ')') {
+                    n = n.slice(1, -1);
+                    tied.push(i);
+                }
+                if (track.isPerc) return parsePitch(n, key, true);
+                const octave = n.match(/\d+$/)?.[0];
+                if (i === 0) {
+                    if (octave) lastOctave = octave;
+                    else n += lastOctave;
+                }
+                else if (!octave && prev !== null) {
+                    let p = parsePitch(n + '0', key);
+                    if (p !== null)  {
+                        while (p <= prev) p += 12;
+                    }
+                    return prev = p;
+                }
+                return prev = parsePitch(n, key);
+            });
+            if (pitches.includes(null)) {
+                showError(`Invalid pitch "${slot.pitches}" at beat ${time}`);
+                pitches = null;
+            }
+            else pitches = pitches.filter((p, i) => {
+                const held = tied.includes(i) && track.events.findLast(e => 
+                    e.time >= start && e.pitches.includes(p) && Math.abs(e.time + e.duration - time) < 1e-9);
+                if (!held) return true;
+                held.pitches = held.pitches.filter(q => q !== p);
+                track.events.push({time: held.time, duration: held.duration + duration, pitches: [p], lyric: null});
+                return false;
+            });
+        }
+        const lyric = slot.lyric === '.' ? null : slot.lyric;
+        if (duration > 0 && pitches?.length) {
+            const event = {time, duration, pitches, lyric};
+            track.events.push(event);
+            lastEvent = event;
+            lastPitches = pitches;
+        }
+        time += duration;
+    });
 }
 
 function parseNotation(text) {
