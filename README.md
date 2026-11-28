@@ -55,8 +55,9 @@ a1.drum2: 1
 | `c4` | Pitch. Notes without an octave use the octave of preceding note  |
 | `c3-e-g` | Chord. Notes without an octave are placed at next higher pitch |
 | `.` | Rest |
-| `-` | Extend the previous note. Or use `(` `)` to extend specific pitch in a chord |
+| `-` | Extend the previous note |
 | `=` | Repeat the previous note or chord |
+| `[` `]` | Sustain a range of notes
 | <code>&#124;</code> | Bar line (optional) |
 
 ## Functions

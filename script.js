@@ -154,9 +154,13 @@ function buildEvents(track, start, slots, key) {
     let lastEvent = null;
     let lastPitches = null;
     let lastOctave = '4';
+    let pedalStart = null;
     const overlaps = e => e.time + e.duration > start;
     while (track.events.length && overlaps(track.events.at(-1))) {
         track.events.pop();
+    }
+    while (track.pedals.length && track.pedals.at(-1)[1] > start) {
+        track.pedals.pop();
     }
     slots.forEach(slot => {
         if (!/^\d*\.?\d+$/.test(slot.duration)) {
@@ -165,6 +169,16 @@ function buildEvents(track, start, slots, key) {
         }
         const duration = parseFloat(slot.duration);
         let pitches = slot.pitches;
+        if (pitches.startsWith('[')) {
+            if (pedalStart !== null) track.pedals.push([pedalStart, time]);
+            pedalStart = time;
+            pitches = pitches.slice(1) || '.';
+        }
+        if (pitches.endsWith(']')) {
+            if (pedalStart !== null) track.pedals.push([pedalStart, time + duration]);
+            pedalStart = null;
+            pitches = pitches.slice(0, -1) || '.';
+        }
         if (pitches === '-') {
             if (lastEvent) lastEvent.duration += duration;
             pitches = null;
@@ -220,6 +234,17 @@ function buildEvents(track, start, slots, key) {
         }
         time += duration;
     });
+    if (pedalStart !== null) track.pedals.push([pedalStart, time]);
+}
+
+function pedalDuration(track, event, pitch) {
+    let end = event.time + event.duration;
+    const next = track.events.reduce((m, f) =>
+        f.time > event.time + 1e-9 && f.pitches.includes(pitch) ? Math.min(m, f.time) : m, Infinity);
+    for (const [a, b] of track.pedals) {
+        if (event.time < b - 1e-9 && end > a + 1e-9) end = Math.max(end, Math.min(b, next));
+    }
+    return end - event.time;
 }
 
 function parseNotation(text) {
@@ -273,7 +298,7 @@ function parseNotation(text) {
             const gain = parseFloat(gainStr ?? 1);
             const pan  = parseFloat(panStr ?? 0);
             const solo = /s$/i.test(gainStr ?? '');
-            sections[currentSection].tracks[name] = {inst, isPerc, gain, pan, solo, events: []};
+            sections[currentSection].tracks[name] = {inst, isPerc, gain, pan, solo, events: [], pedals: []};
         } 
         else if (!line.startsWith('-')) {
             const [trackPath, startStr] = line.split(/[\s:]+/).filter(t => t);
@@ -300,7 +325,7 @@ function parseNotation(text) {
             if (tokens.length === 0) continue;
             const section = sections[currentSection];
             const track = section.tracks[currentTrack];
-            const first = tokens.find(t => t !== '.' && t !== '-' && t != '=') ?? tokens[0];
+            const first = tokens.map(t => t.replace(/[\[\]]/g, '')).find(t => t !== '.' && t !== '-' && t != '=') ?? tokens[0];
             let field;
             if (/^\d*\.?\d+$/.test(first)) {
                 field = 'duration';
@@ -511,10 +536,10 @@ async function play() {
                 if (eventBeat < playbackStartBeat) return;
                 const eventSec = beatToSec(eventBeat);
                 const delay = eventSec - startSec;
-                const duration = beatToSec(eventBeat + event.duration) - eventSec;
                 const timeout = setTimeout(() => {
                     if (isPlaying) {
                         event.pitches.forEach(pitch => {
+                            const duration = beatToSec(eventBeat + pedalDuration(track, event, pitch)) - eventSec;
                             instrument.play(pitch, audioContext.currentTime, { duration, gain: track.gain });
                         });
                     }
@@ -643,6 +668,10 @@ function buildMidi() {
             }
             events.push({tick, order: 0, bytes: [0xb0 | ch, 7, clamp(Math.round(track.gain * 100), 0, 127)]});
             events.push({tick, order: 0, bytes: [0xb0 | ch, 10, clamp(Math.round((track.pan + 1) * 63.5), 0, 127)]});
+            track.pedals.forEach(([a, b]) => {
+                events.push({tick: Math.round((offsets[secName] + a) * PPQ), order: 2, bytes: [0xb0 | ch, 64, 127]});
+                events.push({tick: Math.round((offsets[secName] + b) * PPQ), order: 1, bytes: [0xb0 | ch, 64, 0]});
+            });
             track.events.forEach(e => {
                 const on = Math.round((offsets[secName] + e.time) * PPQ);
                 const off = Math.round((offsets[secName] + e.time + e.duration) * PPQ);
@@ -761,8 +790,8 @@ async function buildAudio() {
             track.events.forEach(event => {
                 const eventBeat = sectionBeatStart + event.time;
                 const eventSec = beatToSec(eventBeat);
-                const duration = beatToSec(eventBeat + event.duration) - eventSec;
                 event.pitches.forEach(pitch => {
+                    const duration = beatToSec(eventBeat + pedalDuration(track, event, pitch)) - eventSec;
                     jobs.push({ player, pitch, start: eventSec, duration, gain: track.gain });
                 });
             });
